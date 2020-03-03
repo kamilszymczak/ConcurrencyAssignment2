@@ -1,4 +1,5 @@
 import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 
 public class AtomicSyncTest {
@@ -6,11 +7,20 @@ public class AtomicSyncTest {
     //Note it is expected that you may need multiple tests for each phase
     //Hence the structure below
 
+
+
+    // Create 4 threads, each calls atomic and are released when 4 have been called
     @Test
     void testPhase1a() {
-        AtomicSync atomic = new AtomicSync(Phase.ONE);
+
+        final AtomicSync atomic = new AtomicSync(Phase.ONE);
         //Create some threads
         //test method atomic.waitForThreads()
+        Thread threads[] = new Thread[5];
+        for (Thread thread : threads){
+            thread = new Thread(new ThreadTester(atomic));
+            thread.start();
+        }
 
         fail("Not yet implemented");
     }
