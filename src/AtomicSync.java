@@ -30,7 +30,7 @@ public class AtomicSync implements Synchronisable {
 			locked.set(true);
 			//lock threads here
 			do{}
-			while(locked.get() == false);
+			while(locked.get() == true);
 
 			//set counter to 0
 			callCounter.set(0);
