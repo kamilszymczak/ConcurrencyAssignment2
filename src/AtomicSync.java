@@ -14,7 +14,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AtomicSync implements Synchronisable {
 
-	Phase phase; 
+	Phase phase;
+	private final AtomicInteger callCounter = new AtomicInteger(0);
+	private final AtomicBoolean locked = new AtomicBoolean(true);
 
 	// Constructor 
 	AtomicSync (Phase p){ 
@@ -23,7 +25,17 @@ public class AtomicSync implements Synchronisable {
 
 	@Override
 	public void waitForThreads() {
-		// TODO Auto-generated method stub
+
+		if(callCounter.incrementAndGet() < 4){
+			locked.set(true);
+			//lock threads here
+			do{}
+			while(locked.get() == false);
+
+			//set counter to 0
+			callCounter.set(0);
+
+		}else locked.set(false);
 
 	}
 	@Override
