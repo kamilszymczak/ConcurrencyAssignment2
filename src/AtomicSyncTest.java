@@ -8,35 +8,35 @@ public class AtomicSyncTest {
 
     @Test
     void testPhase1a() {
-        AtomicSync sync = new AtomicSync(Phase.ONE);
+        AtomicSync atomic = new AtomicSync(Phase.ONE);
         //Create some threads
-        //test method sync.waitForThreads()
+        //test method atomic.waitForThreads()
 
         fail("Not yet implemented");
     }
     @Test
     void testPhase1b() {
-        AtomicSync sync = new AtomicSync(Phase.ONE);
+        AtomicSync atomic = new AtomicSync(Phase.ONE);
         //Create some threads
-        //test method sync.waitForThreadsInGroup
+        //test method atomic.waitForThreadsInGroup
         fail("Not yet implemented");
     }
     //etc
 
     @Test
     void testPhase2a() {
-        AtomicSync sync = new AtomicSync(Phase.TWO);
+        AtomicSync atomic = new AtomicSync(Phase.TWO);
         //Create some threads
-        //test method sync.waitForThreadsInGroup
+        //test method atomic.waitForThreadsInGroup
         fail("Not yet implemented");
     }
     //etc
 
     @Test
     void testPhase3a() {
-        AtomicSync sync = new AtomicSync(Phase.THREE);
+        AtomicSync atomic = new AtomicSync(Phase.THREE);
         //Create some threads
-        //test method sync.finished
+        //test method atomic.finished
         fail("Not yet implemented");
     }
     //etc
