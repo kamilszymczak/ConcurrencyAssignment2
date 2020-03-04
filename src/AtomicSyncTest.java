@@ -1,6 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import java.util.*;
 
 public class AtomicSyncTest {
 
@@ -12,17 +12,28 @@ public class AtomicSyncTest {
     // Create 4 threads, each calls atomic and are released when 4 have been called
     @Test
     void testPhase1a() {
-
+        final int initThreads = 158;
         final AtomicSync atomic = new AtomicSync(Phase.ONE);
         //Create some threads
         //test method atomic.waitForThreads()
-        Thread threads[] = new Thread[5];
-        for (Thread thread : threads){
-            thread = new Thread(new ThreadTester(atomic));
-            thread.start();
+        Thread threads[] = new Thread[initThreads];
+
+        for (int i = 0 ; i < initThreads; i++){
+            threads[i] = new Thread(new ThreadTester(atomic));
+            threads[i].start();
         }
 
-        fail("Not yet implemented");
+        
+         try{ Thread.sleep(initThreads);} catch (Exception e){System.out.println("Exception "+e.toString());}
+
+        Stack threadStack = new Stack<Thread>();
+
+        for (Thread startedThreads : threads){
+            if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
+        }
+
+        assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
+
     }
     @Test
     void testPhase1b() {
