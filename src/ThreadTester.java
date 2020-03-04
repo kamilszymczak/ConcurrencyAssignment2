@@ -1,5 +1,3 @@
-import org.jetbrains.annotations.NotNull;
-
 public class ThreadTester implements Runnable {
     AtomicSync atomic;
 
