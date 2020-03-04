@@ -16,15 +16,20 @@ public class SemaphoreSync implements Synchronisable {
 
 	Phase phase; 
 
-	// Constructor 
+
 	SemaphoreSync (Phase p){ 
 		this.phase = p; // Phase of testing being performed
 	}
+	final Semaphore waiting = new Semaphore(4,true);
 
 	@Override
 	public void waitForThreads() {
 		// TODO Auto-generated method stub
+		try {waiting.acquire();} catch (Exception e){System.out.println("Semaphore exception"+e.toString());}
+		while(waiting.availablePermits() > 0){
+		}
 
+		waiting.release();
 	}
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
