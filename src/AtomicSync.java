@@ -26,6 +26,8 @@ public class AtomicSync implements Synchronisable {
 	@Override
 	public void waitForThreads() {
 
+		//for every thread that calls waitForThreads() method
+		//lock the thread until exactly 4 threads are locked when that takes place unlock the batch of 4 threads
 		if(callCounter.incrementAndGet() < 4){
 			locked.set(true);
 			//lock threads here
