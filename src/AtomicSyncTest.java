@@ -12,7 +12,7 @@ public class AtomicSyncTest {
     // Create 4 threads, each calls atomic and are released when 4 have been called
     @Test
     void testPhase1a() {
-        final int initThreads = 158;
+        final int initThreads = 15;
         final AtomicSync atomic = new AtomicSync(Phase.ONE);
         //Create some threads
         //test method atomic.waitForThreads()
@@ -24,7 +24,7 @@ public class AtomicSyncTest {
         }
 
         
-         try{ Thread.sleep(initThreads);} catch (Exception e){System.out.println("Exception "+e.toString());}
+         try{ Thread.sleep(initThreads+20);} catch (Exception e){System.out.println("Exception "+e.toString());}
 
         Stack threadStack = new Stack<Thread>();
 
