@@ -3,6 +3,8 @@
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
+import java.util.Stack;
+
 /**
  * 
  * Example stub JUnit test for class IntrinsicSync
@@ -17,10 +19,30 @@ class IntrinsicSyncTest {
 	@Test
 	void testPhase1a() {
 		IntrinsicSync sync = new IntrinsicSync(Phase.ONE);
+
+		final int initThreads = 999;
+
 		//Create some threads
-		//test method sync.waitForThreads()
-		
-		fail("Not yet implemented");
+		//test method atomic.waitForThreads()
+		Thread threads[] = new Thread[initThreads];
+
+		for (int i = 0 ; i < initThreads; i++){
+			threads[i] = new Thread(new ThreadTester(sync));
+			threads[i].start();
+		}
+
+
+		//try{ Thread.sleep(initThreads);} catch (Exception e){System.out.println("Exception "+e.toString());}
+
+		Stack threadStack = new Stack<Thread>();
+
+		for (Thread startedThreads : threads){
+			if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
+		}
+
+		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
+
+
 	}	
 	@Test
 	void testPhase1b() {
