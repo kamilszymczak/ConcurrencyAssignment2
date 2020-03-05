@@ -1,28 +1,47 @@
 public class ThreadTester implements Runnable {
-    AtomicSync atomic;
-    SemaphoreSync semp;
-    ExtrinsicSync extS;
-    IntrinsicSync intS;
+    AtomicSync atomic = null;
+    SemaphoreSync semp = null;
+    ExtrinsicSync extS = null;
+    IntrinsicSync intS = null;
+    Init constr;
+
+    enum Init {ATOMIC, SEMAPHORE, EXTRINSIC, INTRINSIC}
 
     public ThreadTester(AtomicSync a){
         this.atomic = a;
+        constr = Init.ATOMIC;
     }
 
-    public ThreadTester(SemaphoreSync s){this.semp = s;}
+    public ThreadTester(SemaphoreSync s){
+        this.semp = s;
+        constr = Init.SEMAPHORE;
+    }
 
-    public ThreadTester(ExtrinsicSync e){this.extS = e;}
+    public ThreadTester(ExtrinsicSync e){
+        this.extS = e;
+        constr = Init.EXTRINSIC;
+    }
 
-    public ThreadTester(IntrinsicSync i){this.intS = i;}
+    public ThreadTester(IntrinsicSync i){
+        this.intS = i;
+        constr = Init.INTRINSIC;
+    }
 
-    
+    private void pickMethod(){
+        switch (constr){
+            case ATOMIC: atomic.waitForThreads();
+                break;
+            case SEMAPHORE: semp.waitForThreads();
+                break;
+            case EXTRINSIC: extS.waitForThreads();
+                break;
+            case INTRINSIC: intS.waitForThreads();
+                break;
+        }
+    }
+
     public void run(){
-
-        atomic.waitForThreads();
+        this.pickMethod();
         System.out.println("This is one of 4 syncronized threads executing");
-    }
-
-    private void threadTask() {
-        atomic.waitForThreads();
-        this.run();
     }
 }
