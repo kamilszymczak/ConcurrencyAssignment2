@@ -1,9 +1,11 @@
+
 public class ThreadTester implements Runnable {
     AtomicSync atomic = null;
     SemaphoreSync semp = null;
     ExtrinsicSync extS = null;
     IntrinsicSync intS = null;
     Init constr;
+    public Boolean terminated = false;
 
     enum Init {ATOMIC, SEMAPHORE, EXTRINSIC, INTRINSIC}
 
@@ -43,5 +45,6 @@ public class ThreadTester implements Runnable {
     public void run(){
         this.pickMethod();
         System.out.println("This is one of 4 syncronized threads executing");
+        terminated = true;
     }
 }
