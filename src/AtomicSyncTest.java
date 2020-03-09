@@ -49,6 +49,8 @@ public class AtomicSyncTest {
         AtomicSync atomic = new AtomicSync(Phase.TWO);
         //Create some threads
         //test method atomic.waitForThreadsInGroup
+        // pass thread group to waitForThreadsInGroup with thread
+
         fail("Not yet implemented");
     }
     //etc

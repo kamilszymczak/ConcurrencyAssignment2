@@ -47,6 +47,7 @@ public class AtomicSync implements Synchronisable {
 	@Override
 	public void finished(int groupId) {
 		// TODO Auto-generated method stub
+		// call finished when thread finshes executing its "work"
 	}
 }
 
