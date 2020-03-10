@@ -19,8 +19,16 @@ public class ExtrinsicSync implements Synchronisable {
 	private final ReentrantLock releaseLock = new ReentrantLock();
 	private final ReentrantLock enterLock = new ReentrantLock();
 	private int lockedCounter = 0;
-	private int releasedCounter = 0;
+	private int threadsWaiting = 0;
 
+ 	// from: https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/Condition.html
+	private final ReentrantLock lock = new ReentrantLock();
+	final Condition notFull  = lock.newCondition();
+	final Condition notEmpty = lock.newCondition();
+
+	private final int threadLimit = 4;
+	private final Object[] items = new Object[4];
+	private int putptr, takeptr, count;
 
 	// Constructor 
 	ExtrinsicSync (Phase p){ 
@@ -31,8 +39,51 @@ public class ExtrinsicSync implements Synchronisable {
 		}
 	}
 
+	private void put() {
+		lock.lock();
+		try {
+			while (count == threadLimit)
+				try {notFull.await();}catch (Exception e){/* some exception */}
+			++count;
+			notEmpty.signal();
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	private Object take() throws InterruptedException {
+		lock.lock();
+		try {
+			while (count == 0)
+				notEmpty.await();
+			Object x = items[takeptr];
+			if (++takeptr == items.length) takeptr = 0;
+			--count;
+			notFull.signal();
+			return x;
+		} finally {
+			lock.unlock();
+		}
+	}
+
+
 	@Override
 	public void waitForThreads() {
+
+		enterLock.lock();
+		lockedCounter ++;
+		enterLock.unlock();
+
+
+
+
+		for (int i = 0; i < locks.length; i++){
+			if(locks[i].tryLock()){
+
+			}
+		}
+
+
 		//Note to self:- Lock can only be released by the thread that locked it
 
 		//only let 4 threads to go to the loop others wait outside until all 4 threads leave/unlock
