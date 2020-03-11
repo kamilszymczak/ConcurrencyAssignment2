@@ -42,9 +42,11 @@ public class ExtrinsicSync implements Synchronisable {
 	private void put() {
 		lock.lock();
 		try {
+			//wait if full aka 4 threads in
 			while (count == threadLimit)
 				try {notFull.await();}catch (Exception e){/* some exception */}
 			++count;
+				//if count is 4 then call take() method?
 			notEmpty.signal();
 		} finally {
 			lock.unlock();
@@ -54,7 +56,7 @@ public class ExtrinsicSync implements Synchronisable {
 	private Object take() throws InterruptedException {
 		lock.lock();
 		try {
-			while (count == 0)
+			while (count != threadLimit)
 				notEmpty.await();
 			Object x = items[takeptr];
 			if (++takeptr == items.length) takeptr = 0;
@@ -87,42 +89,42 @@ public class ExtrinsicSync implements Synchronisable {
 		//Note to self:- Lock can only be released by the thread that locked it
 
 		//only let 4 threads to go to the loop others wait outside until all 4 threads leave/unlock
-		enterLock.lock();
-		try{
-			while(lockedCounter >= 4){ }
-			lockedCounter++;
-			System.out.println("Locked counter:- " + lockedCounter);
-		} finally {
-			enterLock.unlock();
-		}
-
-
-		//loop through locks if locked to one of them then after unlock break loop
-		for(int i = 0; i < locks.length; i++){
-			//if in if statement then lock acquired
-			if(locks[i].tryLock()){
-				try{
-					while(lockedCounter < 4);
-				} finally {
-					locks[i].unlock();
-					//System.out.println("Thread unlocked:- " + Thread.currentThread().getName());
-					releaseLock.lock();
-					try{
-						releasedCounter++;
-						if(releasedCounter == 4){
-							System.out.println("Resetting counters");
-							releasedCounter = 0;
-							lockedCounter = 0;
-						}
-					} finally {
-						releaseLock.unlock();
-					}
-					//if released 4 threads then reset counters
-					//System.out.println("Thread released incr:- " + releasedCounter);
-				}
-				break;
-			}
-		}
+//		enterLock.lock();
+//		try{
+//			while(lockedCounter >= 4){ }
+//			lockedCounter++;
+//			System.out.println("Locked counter:- " + lockedCounter);
+//		} finally {
+//			enterLock.unlock();
+//		}
+//
+//
+//		//loop through locks if locked to one of them then after unlock break loop
+//		for(int i = 0; i < locks.length; i++){
+//			//if in if statement then lock acquired
+//			if(locks[i].tryLock()){
+//				try{
+//					while(lockedCounter < 4);
+//				} finally {
+//					locks[i].unlock();
+//					//System.out.println("Thread unlocked:- " + Thread.currentThread().getName());
+//					releaseLock.lock();
+//					try{
+//						releasedCounter++;
+//						if(releasedCounter == 4){
+//							System.out.println("Resetting counters");
+//							releasedCounter = 0;
+//							lockedCounter = 0;
+//						}
+//					} finally {
+//						releaseLock.unlock();
+//					}
+//					//if released 4 threads then reset counters
+//					//System.out.println("Thread released incr:- " + releasedCounter);
+//				}
+//				break;
+//			}
+//		}
 
 
 		//STILL LEAVING THIS JUST INCASE
