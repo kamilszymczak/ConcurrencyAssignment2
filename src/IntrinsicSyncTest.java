@@ -20,7 +20,7 @@ class IntrinsicSyncTest {
 	void testPhase1a() {
 		IntrinsicSync sync = new IntrinsicSync(Phase.ONE);
 
-		final int initThreads = 999;
+		final int initThreads = 23;
 
 		//Create some threads
 		//test method atomic.waitForThreads()

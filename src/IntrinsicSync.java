@@ -31,44 +31,45 @@ public class IntrinsicSync implements Synchronisable {
 		this.phase = p; // Phase of testing being performed
 	}
 
-	//Create enum for switch
-	private enum Next {ZERO,ONE,TWO,THREE}
-	private Next order = Next.ZERO;
+	private final int threadLimit = 4;
+	private int count = 0;
+	private int released = 0;
 
 	private Boolean blocked = true;
 
-	private synchronized void zeroHold(){
-		while(blocked);
+	private synchronized void put() throws InterruptedException {
+		while(count == threadLimit){
+			wait();
+		}
+
+		count++;
+		//System.out.println("Passed put" + count);
+		take();
+
+		if(released == 4){
+			count = 0;
+			released = 0;
+			notifyAll();
+		}
 	}
 
-	private synchronized void oneHold(){
-		while(blocked);
+	private synchronized void take() throws InterruptedException {
+		while(count < threadLimit){
+			wait();
+		}
+		notifyAll();
+		released++;
 	}
 
-	private synchronized void twoHold(){
-		while(blocked);
-	}
 
-	private synchronized void threeHold(){
-		blocked = false;
-	}
 
 	@Override
 	public void waitForThreads() {
-		// TODO Auto-generated method stub
-		switch (order) {
-			case ZERO: zeroHold();
-				order = Next.ONE;
-				break;
-			case ONE: oneHold();
-				order = Next.TWO;
-				break;
-			case TWO: twoHold();
-				order = Next.THREE;
-				break;
-			case THREE: threeHold();
-				order = Next.ZERO;
-				break;
+
+		try {
+			put();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	@Override
