@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AtomicSync implements Synchronisable {
 
 	Phase phase;
-
+	private final AtomicBoolean groupLock = new AtomicBoolean(false);
 	// class to run an instance of waitForThreads()
 	private class Group {
 		private final AtomicInteger syncCounter = new AtomicInteger(0);
@@ -32,7 +32,7 @@ public class AtomicSync implements Synchronisable {
 
 		private void waitThreads() {
 			// allow at most 1 thread past this point at a time, the rest busy wait here
-			while(!outLock.compareAndSet(false, true)){}
+			while(!outLock.compareAndSet(false, true));
 			try{
 				// test number of threads inside of the outLock area
 				if (syncCounter.incrementAndGet() < 4) outLock.set(false);
@@ -78,26 +78,31 @@ public class AtomicSync implements Synchronisable {
 
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
-		if (group.length < groupId+1){
-			Group tempArray[] = new Group[group.length];
-			for(int i = 0; i < group.length; i++){
-				tempArray[i] = group[i];
+		// 1 thread can modify the Group array at a given time
+		while(!groupLock.compareAndSet(false, true));
+		try {
+			// check if the group array can support the new group
+			if (group.length < groupId+1){
+				// deepcopy the existing array
+				Group tempArray[] = new Group[group.length];
+				System.arraycopy(group, 0, tempArray, 0, group.length);
+				
+				// create the new array with a sufficient number of group allocations
+				group = new Group[groupId+1];
+
+				// deepcopy the temp array back into the new one
+				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
 			}
+		}catch (Exception e){
 
-			tempArray = group.clone();
-
-			group = new Group[groupId+1];
-
-			for(int i = 0; i < tempArray.length; i++){
-				group[i] = tempArray[i];
+		}finally {
+			if (group[groupId] == null){
+				group[groupId] = new Group(groupId);
 			}
-
+			groupLock.set(false);
+			group[groupId].waitThreads();
 		}
 
-		if (group[groupId] == null){
-			group[groupId] = new Group(groupId);
-		}
-		group[groupId].waitThreads();
 	}
 	@Override
 	public void finished(int groupId) {
