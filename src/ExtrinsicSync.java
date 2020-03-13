@@ -27,6 +27,7 @@ public class ExtrinsicSync implements Synchronisable {
 	final Condition notEmpty = lock.newCondition();
 
 	private final int threadLimit = 4;
+	private int toBeRealesed = 0;
 	private final Object[] items = new Object[4];
 	private int putptr, takeptr, count;
 
@@ -39,28 +40,40 @@ public class ExtrinsicSync implements Synchronisable {
 		}
 	}
 
-	private void put() {
+	private void put() throws InterruptedException {
 		lock.lock();
 		try {
+			//while count is more than 4 then await until notFull aka empty 4 threads released
+			//wait if full aka 4 threads in
 			while (count == threadLimit)
 				try {notFull.await();}catch (Exception e){/* some exception */}
+
 			++count;
-			notEmpty.signal();
+			System.out.println("Passed put" + count);
+			take();
 		} finally {
 			lock.unlock();
 		}
 	}
 
-	private Object take() throws InterruptedException {
+	private void take() throws InterruptedException {
 		lock.lock();
 		try {
-			while (count == 0)
+			//wait until all 4 threads can be taken/released
+			while (count < threadLimit)
 				notEmpty.await();
-			Object x = items[takeptr];
-			if (++takeptr == items.length) takeptr = 0;
-			--count;
-			notFull.signal();
-			return x;
+
+			notEmpty.signal();
+			toBeRealesed++;
+
+			System.out.println("After signal" + toBeRealesed);
+			//when toBeReleased is 4 then means all 4 threads were released
+			if(toBeRealesed == threadLimit){
+				count = 0;
+				toBeRealesed = 0;
+				notFull.signal();
+			}
+
 		} finally {
 			lock.unlock();
 		}
@@ -70,59 +83,57 @@ public class ExtrinsicSync implements Synchronisable {
 	@Override
 	public void waitForThreads() {
 
-		enterLock.lock();
-		lockedCounter ++;
-		enterLock.unlock();
+//		enterLock.lock();
+//		lockedCounter ++;
+//		enterLock.unlock();
 
-
-
-
-		for (int i = 0; i < locks.length; i++){
-			if(locks[i].tryLock()){
-
-			}
+		try {
+			put();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+
 
 
 		//Note to self:- Lock can only be released by the thread that locked it
 
 		//only let 4 threads to go to the loop others wait outside until all 4 threads leave/unlock
-		enterLock.lock();
-		try{
-			while(lockedCounter >= 4){ }
-			lockedCounter++;
-			System.out.println("Locked counter:- " + lockedCounter);
-		} finally {
-			enterLock.unlock();
-		}
-
-
-		//loop through locks if locked to one of them then after unlock break loop
-		for(int i = 0; i < locks.length; i++){
-			//if in if statement then lock acquired
-			if(locks[i].tryLock()){
-				try{
-					while(lockedCounter < 4);
-				} finally {
-					locks[i].unlock();
-					//System.out.println("Thread unlocked:- " + Thread.currentThread().getName());
-					releaseLock.lock();
-					try{
-						releasedCounter++;
-						if(releasedCounter == 4){
-							System.out.println("Resetting counters");
-							releasedCounter = 0;
-							lockedCounter = 0;
-						}
-					} finally {
-						releaseLock.unlock();
-					}
-					//if released 4 threads then reset counters
-					//System.out.println("Thread released incr:- " + releasedCounter);
-				}
-				break;
-			}
-		}
+//		enterLock.lock();
+//		try{
+//			while(lockedCounter >= 4){ }
+//			lockedCounter++;
+//			System.out.println("Locked counter:- " + lockedCounter);
+//		} finally {
+//			enterLock.unlock();
+//		}
+//
+//
+//		//loop through locks if locked to one of them then after unlock break loop
+//		for(int i = 0; i < locks.length; i++){
+//			//if in if statement then lock acquired
+//			if(locks[i].tryLock()){
+//				try{
+//					while(lockedCounter < 4);
+//				} finally {
+//					locks[i].unlock();
+//					//System.out.println("Thread unlocked:- " + Thread.currentThread().getName());
+//					releaseLock.lock();
+//					try{
+//						releasedCounter++;
+//						if(releasedCounter == 4){
+//							System.out.println("Resetting counters");
+//							releasedCounter = 0;
+//							lockedCounter = 0;
+//						}
+//					} finally {
+//						releaseLock.unlock();
+//					}
+//					//if released 4 threads then reset counters
+//					//System.out.println("Thread released incr:- " + releasedCounter);
+//				}
+//				break;
+//			}
+//		}
 
 
 		//STILL LEAVING THIS JUST INCASE

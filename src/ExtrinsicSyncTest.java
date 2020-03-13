@@ -18,7 +18,7 @@ class ExtrinsicSyncTest {
 	
 	@Test
 	void testPhase1a() {
-		final int initThreads = 4;
+		final int initThreads = 9;
 		ExtrinsicSync extrinsic = new ExtrinsicSync(Phase.ONE);
 
 		//Create some threads
