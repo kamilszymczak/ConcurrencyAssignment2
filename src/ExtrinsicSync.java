@@ -50,7 +50,7 @@ public class ExtrinsicSync implements Synchronisable {
 			lock.lock();
 			try {
 				//block thread if 4 threads already waiting
-				if (count == threadLimit)
+				while (count == threadLimit)
 					notFull.await();
 
 				++count;
@@ -73,7 +73,7 @@ public class ExtrinsicSync implements Synchronisable {
 			lock.lock();
 			try {
 				//wait until all 4 threads can be taken/released
-				if (count < threadLimit)
+				while (count < threadLimit)
 					notEmpty.await();
 
 				notEmpty.signalAll();
