@@ -32,15 +32,15 @@ public class ExtrinsicSync implements Synchronisable {
 	private void put() throws InterruptedException {
 		lock.lock();
 		try {
-			//wait if full aka 4 threads in
-			while (count == threadLimit)
+			//block thread if 4 threads already waiting
+			if (count == threadLimit)
 				notFull.await();
 
 			++count;
 			//System.out.println("Passed put" + count);
 			take();
 
-			//when realesed is 4 then means all 4 threads were released can signal to take in next set of 4 threads
+			//when released is 4 signal to unblock threads until 4 more threads are inside take()
 			if(realesed == threadLimit){
 				count = 0;
 				realesed = 0;
@@ -56,10 +56,10 @@ public class ExtrinsicSync implements Synchronisable {
 		lock.lock();
 		try {
 			//wait until all 4 threads can be taken/released
-			while (count < threadLimit)
+			if (count < threadLimit)
 				notEmpty.await();
 
-			notEmpty.signal();
+			notEmpty.signalAll();
 			realesed++;
 
 			System.out.println("After signal" + realesed);
