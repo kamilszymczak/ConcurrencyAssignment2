@@ -22,7 +22,7 @@ public class AtomicSync implements Synchronisable {
 		private final AtomicInteger leaveCounter = new AtomicInteger(4);
 		private final AtomicBoolean outLock = new AtomicBoolean(false);
 		private final AtomicBoolean innerLock = new AtomicBoolean(true);
-		int groupID;
+		private int groupID;
 
 		Group(int id) {
 			this.groupID = id;
@@ -86,7 +86,7 @@ public class AtomicSync implements Synchronisable {
 				// deepcopy the existing array
 				Group tempArray[] = new Group[group.length];
 				System.arraycopy(group, 0, tempArray, 0, group.length);
-				
+
 				// create the new array with a sufficient number of group allocations
 				group = new Group[groupId+1];
 
@@ -94,7 +94,7 @@ public class AtomicSync implements Synchronisable {
 				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
 			}
 		}catch (Exception e){
-
+			System.out.println(e.toString());
 		}finally {
 			if (group[groupId] == null){
 				group[groupId] = new Group(groupId);
