@@ -1,5 +1,5 @@
 
-
+import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,12 @@ class IntrinsicSyncTest {
 	void testPhase1a() {
 		IntrinsicSync sync = new IntrinsicSync(Phase.ONE);
 
-		final int initThreads = 23;
+
+		Random rand = new Random();
+		int amount = rand.nextInt(2000);
+		System.out.println(amount + " threads");
+		final int initThreads = amount;
+
 
 		//Create some threads
 		//test method atomic.waitForThreads()
@@ -32,7 +37,7 @@ class IntrinsicSyncTest {
 		}
 
 
-		//try{ Thread.sleep(initThreads);} catch (Exception e){System.out.println("Exception "+e.toString());}
+		try{ Thread.sleep(initThreads * 5);} catch (Exception e){System.out.println("Exception "+e.toString());}
 
 		Stack threadStack = new Stack<Thread>();
 
