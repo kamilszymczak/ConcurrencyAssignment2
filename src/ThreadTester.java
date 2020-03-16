@@ -87,7 +87,7 @@ public class ThreadTester implements Runnable {
 
     public void run(){
         this.pickMethod();
-        System.out.println("This is one of 4 syncronized threads executing");
+        System.out.println("This is a thread from group: "+gid+" executing");
         terminated = true;
     }
 }
