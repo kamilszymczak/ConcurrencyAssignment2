@@ -46,12 +46,29 @@ public class AtomicSyncTest {
 
     @Test
     void testPhase2a() {
-        //AtomicSync atomic = new AtomicSync(Phase.TWO);
-        //Create some threads
-        //test method atomic.waitForThreadsInGroup
-        // pass thread group to waitForThreadsInGroup with thread
+        Random rand = new Random();
+        int x = rand.nextInt(50);
+        final int initThreads = 20;
 
-        fail("Not yet implemented");
+        AtomicSync atomic = new AtomicSync(Phase.TWO);
+        Thread threads[] = new Thread[initThreads];
+
+        for (int i = 0 ; i < initThreads/2; i++){
+            threads[i] = new Thread(new ThreadTester(atomic, 0));
+            threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1)));
+            threads[i].start();
+            threads[i+(initThreads/2)].start();
+        }
+        try{ Thread.sleep(initThreads+500);} catch (Exception e){System.out.println("Exception "+e.toString());}
+
+        Stack threadStack = new Stack<Thread>();
+
+        for (Thread startedThreads : threads){
+            System.out.println(startedThreads.getName());
+            if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
+        }
+
+        assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
     }
     //etc
 
