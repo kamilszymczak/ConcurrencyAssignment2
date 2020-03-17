@@ -31,47 +31,55 @@ public class IntrinsicSync implements Synchronisable {
 		this.phase = p; // Phase of testing being performed
 	}
 
-	private final int threadLimit = 4;
-	private int count = 0;
-	private int released = 0;
+	private class Group{
+		private final int threadLimit = 4;
+		private int count = 0;
+		private int released = 0;
+		private int groupID;
 
-	private Boolean blocked = true;
+		Group(int id) {this.groupID = id;}
+		Group(){}
 
-	private synchronized void put() throws InterruptedException {
-		while(count == threadLimit){
-			wait();
+		private void waitThreads(){
+			try {
+				this.put();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 
-		count++;
-		//System.out.println("Passed put" + count);
-		take();
+		private synchronized void put() throws InterruptedException {
+			while(count == threadLimit){
+				wait();
+			}
 
-		if(released == 4){
-			count = 0;
-			released = 0;
+			count++;
+			//System.out.println("Passed put" + count);
+			this.take();
+
+			if(released == 4){
+				count = 0;
+				released = 0;
+				notifyAll();
+			}
+		}
+
+		private synchronized void take() throws InterruptedException {
+			while(count < threadLimit){
+				wait();
+			}
 			notifyAll();
+			released++;
 		}
+
 	}
-
-	private synchronized void take() throws InterruptedException {
-		while(count < threadLimit){
-			wait();
-		}
-		notifyAll();
-		released++;
-	}
-
-
+	private final Group fourThreads = new Group();
 
 	@Override
 	public void waitForThreads() {
-
-		try {
-			put();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		fourThreads.waitThreads();
 	}
+
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
 		// TODO Auto-generated method stub
