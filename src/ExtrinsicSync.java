@@ -1,11 +1,11 @@
 /**
- * 
+ *
  * Groups must populate the stubs below in order to implement 
  * the 3 phases of the requirements for this class
  * Note that no other public methods or objects are allow.
- * 
+ *
  * Private methods and objects may be used
- * 
+ *
  */
 
 import java.util.concurrent.locks.Condition;
@@ -14,9 +14,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ExtrinsicSync implements Synchronisable {
 	Phase phase;
+	private final ReentrantLock lock = new ReentrantLock();
+	private final Condition inUse  = lock.newCondition();
+	private boolean used = false;
 
-	// Constructor 
-	ExtrinsicSync (Phase p){ 
+	// Constructor
+	ExtrinsicSync (Phase p){
 		this.phase = p; // Phase of testing being performed
 	}
 
@@ -94,11 +97,46 @@ public class ExtrinsicSync implements Synchronisable {
 		// each thread accesses the waitThreads() method from the fourThreads Group class
 		fourThreads.waitThreads();
 	}
+
+	private Group group[] = new Group[1];
+
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
-		// TODO Auto-generated method stub
+		// 1 thread can modify the Group array at a given time
+		lock.lock();
+		try {
+//			while(used)
+//				inUse.await();
+//
+//			used = true;
+
+			// check if the group array can support the new group
+			if (group.length < groupId+1) {
+				// deepcopy the existing array
+				Group tempArray[] = new Group[group.length];
+				System.arraycopy(group, 0, tempArray, 0, group.length);
+
+				// create the new array with a sufficient number of group allocations
+				group = new Group[groupId + 1];
+
+				// deepcopy the temp array back into the new one
+				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
+			}
+
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+		} finally {
+			if(group[groupId] == null){
+				group[groupId] = new Group(groupId);
+			}
+//			used = false;
+//			inUse.signalAll();
+			lock.unlock();
+			group[groupId].waitThreads();
+		}
 
 	}
+
 	@Override
 	public void finished(int groupId) {
 		// TODO Auto-generated method stub
