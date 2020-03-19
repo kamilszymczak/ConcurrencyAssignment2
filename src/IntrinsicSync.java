@@ -80,11 +80,33 @@ public class IntrinsicSync implements Synchronisable {
 		fourThreads.waitThreads();
 	}
 
+	private Group[] group = new Group[1];
+
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
 		// TODO Auto-generated method stub
-
 	}
+
+	private synchronized Group[] expandArray(int groupId){
+		// check if the group array can support the new group
+		if (group.length < groupId+1){
+			// deepcopy the existing array
+			Group[] tempArray = new Group[group.length];
+			System.arraycopy(group, 0, tempArray, 0, group.length);
+
+			// create the new array with a sufficient number of group allocations
+			group = new Group[groupId+1];
+
+			// deepcopy the temp array back into the new one
+			System.arraycopy(tempArray, 0, group, 0, tempArray.length);
+		}
+
+		return group;
+	}
+
+
+
+
 	@Override
 	public void finished(int groupId) {
 		// TODO Auto-generated method stub
