@@ -85,6 +85,15 @@ public class IntrinsicSync implements Synchronisable {
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
 		// TODO Auto-generated method stub
+
+		//Setting up new group if it doesn't exist in array
+		if (group[groupId] == null){
+			expandArray(groupId);
+			group[groupId] = new Group(groupId);
+		}
+
+		group[groupId].waitThreads();
+
 	}
 
 	private synchronized Group[] expandArray(int groupId){
