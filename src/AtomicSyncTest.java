@@ -3,6 +3,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 
 public class AtomicSyncTest {
@@ -16,7 +17,8 @@ public class AtomicSyncTest {
 
     @Test
     void testPhase1a() {
-        final int initThreads = 123;
+        final int initThreads = 500000;
+        final int expectedThreads = largestMultipleFour(initThreads);
         final AtomicSync atomic = new AtomicSync(Phase.ONE);
         //Create some threads
         //test method atomic.waitForThreads()
@@ -27,9 +29,39 @@ public class AtomicSyncTest {
             threads[i].start();
         }
 
-        // change thread sleep to while loop testing for expected number of terminated threads instead
-        // use a getTimeMilis() function to place a max limit on time waited.
-         try{ Thread.sleep(initThreads+500);} catch (Exception e){System.out.println("Exception "+e.toString());}
+        // counter for the number of terminated threads
+        int termThreads = 0;
+        //Iterator<Thread> it = new ArrayList(Arrays.asList(threads)).iterator();
+        //List<Thread> finished = new ArrayList<Thread>();
+
+        // timer variables, start time, updating time and max time to wait.
+        final long waitLimit = (initThreads*20)+500;
+        final long beginWait = ZonedDateTime.now().toInstant().toEpochMilli();
+        long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+
+        while (termThreads != expectedThreads && (timeNow - beginWait) != waitLimit){
+            try{ Thread.sleep(10);} catch (Exception e){System.out.println("Exception "+e.toString());}
+            termThreads = 0;
+
+            /* Too much overhead
+            while (it.hasNext()){
+                Thread temp = it.next();
+                if (temp.getState() == Thread.State.TERMINATED){
+                    finished.add(temp);
+                    it.remove();
+                }
+            }
+            //termThreads = finished.size();
+            */
+
+            // for some reason looping over all the threads every time is much faster
+            for (Thread t : threads){
+                if (t.getState() == Thread.State.TERMINATED) termThreads++;
+            }
+            timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+
+        }
+
 
         Stack threadStack = new Stack<Thread>();
 
@@ -38,7 +70,7 @@ public class AtomicSyncTest {
         }
 
         assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
-
+        assertEquals(expectedThreads, termThreads, "Unexpected number of threads have terminated");
     }
 
     // paramterized test to test a range of thread numbers
