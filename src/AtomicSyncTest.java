@@ -104,12 +104,16 @@ public class AtomicSyncTest {
 
     @Test
     void testPhase2a() {
-        Random rand = new Random();
+        // testing 2 groups
 
-        int x = rand.nextInt(50);
+        //Random rand = new Random();
+        //int x = rand.nextInt(50);
 
         // instantiate a random (even) number of threads
+        //final int initThreads = (x%2 == 0 ? x : ++x);
+        int x = 0;
         final int initThreads = (x%2 == 0 ? x : ++x);
+        final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
         System.out.println("Number of threads: "+initThreads);
         //final int initThreads = 50;
         AtomicSync atomic = new AtomicSync(Phase.TWO);
@@ -122,8 +126,13 @@ public class AtomicSyncTest {
             threads[i].start();
             threads[i+(initThreads/2)].start();
         }
+        Thread threadG1[] = new Thread[initThreads/2];
+        Thread threadG2[] = new Thread[initThreads/2];
+        System.arraycopy(threads, 0, threadG1, 0, threadG1.length);
+        System.arraycopy(threads, initThreads/2, threadG2, 0, threadG2.length);
 
-        try{ Thread.sleep(initThreads*2+500);} catch (Exception e){System.out.println("Exception "+e.toString());}
+        int termThreadsG1 = terminateThreads(threadG1, expectedThreadsPerGroup);
+        int termThreadsG2 = terminateThreads(threadG2, expectedThreadsPerGroup);
 
         Stack threadStack = new Stack<Thread>();
         Stack groupZeroStack = new Stack<Thread>();
@@ -138,8 +147,8 @@ public class AtomicSyncTest {
             if (threads[i+(initThreads/2)].getState() == Thread.State.TERMINATED) groupOneStack.push(threads[i+(initThreads/2)]);
         }
 
-        assertEquals(largestMultipleFour(initThreads/2), groupZeroStack.size(), "Wrong number of threads in group 0");
-        assertEquals(largestMultipleFour(initThreads/2), groupOneStack.size(), "Wrong number of threads in group 1");
+        assertEquals(expectedThreadsPerGroup, groupZeroStack.size(), "Wrong number of threads in group 0");
+        assertEquals(expectedThreadsPerGroup, groupOneStack.size(), "Wrong number of threads in group 1");
         assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
     }
     //etc
