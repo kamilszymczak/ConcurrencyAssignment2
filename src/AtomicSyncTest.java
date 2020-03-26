@@ -203,16 +203,17 @@ public class AtomicSyncTest {
     }
 
     @ParameterizedTest(name="Run {index}")
-    @ValueSource(ints = {4, 7, 10, 12, 19, 20, 21, 27, 60, 100})
+    @ValueSource(ints = {4, 7, 10, 12, 19, 20, 21, 27, 100/* HAMMER YOUR CPU, 500 */})
     void testPhase2c(int threadBound){
         Random rand = new Random();
-
-        final int numOfGroups = rand.nextInt(threadBound)+1;
+        int x = rand.nextInt(threadBound);
+        final int numOfGroups = x > 0 ? x : 1;
         final int initThreads = rand.nextInt(threadBound*15);
+        System.out.println("Number of threads: "+initThreads);
 
         AtomicSync atomic = new AtomicSync(Phase.TWO);
         Thread threads[] = new Thread[initThreads];
-        int groups[] = new int[numOfGroups+1];
+        int groups[] = new int[numOfGroups + 1];
 
         for (int i = 0; i < initThreads; i++){
             int gid = rand.nextInt(numOfGroups);
