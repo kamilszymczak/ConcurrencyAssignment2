@@ -85,17 +85,13 @@ public class AtomicSyncTest {
     }
 
     // paramterized test to test a range of thread numbers
-    @ParameterizedTest(name="Run {index}: threadBound")
+    @ParameterizedTest(name="Run {index}")
     @ValueSource(ints = {0, 1, 3, 4, 7, 8, 10, 12, 25, 36, 50, 100, 123, 523})
     public void testPhase1b(int initThreads) throws Throwable {
-        final AtomicSync atomic = new AtomicSync(Phase.ONE);
-        Thread threads[] = new Thread[initThreads];
-        for (int i = 0 ; i < initThreads; i++){
-            threads[i] = new Thread(new ThreadTester(atomic));
-            threads[i].start();
-        }
+        final int expectedThreads = largestMultipleFour(initThreads);
+        Thread threads[] = initP1Test(initThreads);
 
-        try{ Thread.sleep(initThreads*4+500);} catch (Exception e){System.out.println("Exception "+e.toString());}
+        int termThreads = terminateThreads(threads, expectedThreads);
 
         Stack threadStack = new Stack<Thread>();
 
@@ -103,6 +99,7 @@ public class AtomicSyncTest {
             if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
         }
         assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
+        assertEquals(expectedThreads, termThreads, "Unexpected number of threads have terminated");
     }
 
     @Test
