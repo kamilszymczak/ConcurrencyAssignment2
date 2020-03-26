@@ -4,7 +4,7 @@ public class ThreadTester implements Runnable {
     SemaphoreSync semp = null;
     ExtrinsicSync extS = null;
     IntrinsicSync intS = null;
-    int gid = 0;
+    public int gid = 0;
     boolean groupSet = false;
     Init concept;
     public Boolean terminated = false;
@@ -87,7 +87,7 @@ public class ThreadTester implements Runnable {
 
     public void run(){
         this.pickMethod();
-        System.out.println("This is a thread from group: "+gid+" executing");
+        //System.out.println("This is a thread from group: "+gid+" executing");
         terminated = true;
     }
 }
