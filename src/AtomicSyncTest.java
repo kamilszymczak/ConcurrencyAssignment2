@@ -1,4 +1,5 @@
 import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -15,30 +16,31 @@ public class AtomicSyncTest {
         return x;
     }
 
-    @Test
-    void testPhase1a() {
-        final int initThreads = 500000;
-        final int expectedThreads = largestMultipleFour(initThreads);
+    private Thread[] initP1Test(int initThreads){
         final AtomicSync atomic = new AtomicSync(Phase.ONE);
-        //Create some threads
-        //test method atomic.waitForThreads()
         Thread threads[] = new Thread[initThreads];
-
         for (int i = 0 ; i < initThreads; i++){
             threads[i] = new Thread(new ThreadTester(atomic));
             threads[i].start();
         }
+        return threads;
+    }
 
+    private int terminateThreads (Thread threads[], int expectedThreads){
         // counter for the number of terminated threads
         int termThreads = 0;
+        int threadsSize = threads.length;
+
         //Iterator<Thread> it = new ArrayList(Arrays.asList(threads)).iterator();
         //List<Thread> finished = new ArrayList<Thread>();
 
         // timer variables, start time, updating time and max time to wait.
-        final long waitLimit = (initThreads*20)+500;
+        final long waitLimit = (threadsSize*20)+500;
         final long beginWait = ZonedDateTime.now().toInstant().toEpochMilli();
+
         long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
 
+            //termThreads = finished.size();
         while (termThreads != expectedThreads && (timeNow - beginWait) != waitLimit){
             try{ Thread.sleep(10);} catch (Exception e){System.out.println("Exception "+e.toString());}
             termThreads = 0;
@@ -51,17 +53,26 @@ public class AtomicSyncTest {
                     it.remove();
                 }
             }
-            //termThreads = finished.size();
             */
 
-            // for some reason looping over all the threads every time is much faster
+            // looping over all the threads every time is much faster
             for (Thread t : threads){
                 if (t.getState() == Thread.State.TERMINATED) termThreads++;
             }
             timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
-
         }
+        return termThreads;
+    }
 
+    @Test
+    void testPhase1a() {
+        final int initThreads = 100000;
+        final int expectedThreads = largestMultipleFour(initThreads);
+
+        Thread threads[] = initP1Test(initThreads);
+
+        // wait until all threads terminate
+        int termThreads = terminateThreads(threads, expectedThreads);
 
         Stack threadStack = new Stack<Thread>();
 
