@@ -74,7 +74,7 @@ public class AtomicSync implements Synchronisable {
 
 
 
-	private Group group[] = new Group[1];
+	private Group group[] = new Group[100];
 
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
@@ -88,7 +88,7 @@ public class AtomicSync implements Synchronisable {
 				System.arraycopy(group, 0, tempArray, 0, group.length);
 
 				// create the new array with a sufficient number of group allocations
-				group = new Group[groupId+1];
+				group = new Group[groupId*2];
 
 				// deepcopy the temp array back into the new one
 				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
@@ -100,9 +100,8 @@ public class AtomicSync implements Synchronisable {
 				group[groupId] = new Group(groupId);
 			}
 			groupLock.set(false);
-			group[groupId].waitThreads();
 		}
-
+		group[groupId].waitThreads();
 	}
 	@Override
 	public void finished(int groupId) {
