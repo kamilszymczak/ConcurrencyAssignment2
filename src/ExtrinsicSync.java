@@ -105,11 +105,6 @@ public class ExtrinsicSync implements Synchronisable {
 		// 1 thread can modify the Group array at a given time
 		lock.lock();
 		try {
-//			while(used)
-//				inUse.await();
-//
-//			used = true;
-
 			// check if the group array can support the new group
 			if (group.length < groupId+1) {
 				// deepcopy the existing array
@@ -123,14 +118,11 @@ public class ExtrinsicSync implements Synchronisable {
 				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
 			}
 
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
 		} finally {
 			if(group[groupId] == null){
 				group[groupId] = new Group(groupId);
 			}
-//			used = false;
-//			inUse.signalAll();
+
 			lock.unlock();
 			group[groupId].waitThreads();
 		}
