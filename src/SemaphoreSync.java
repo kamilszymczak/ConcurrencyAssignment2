@@ -25,11 +25,15 @@ public class SemaphoreSync implements Synchronisable {
 	@Override
 	public void waitForThreads() {
 		try {
+
 			waiting.acquire();
-			while (waiting.availablePermits() > 0);
-			waiting.release();
+			while (waiting.availablePermits() > 4);
+			//waiting.release();
+			//System.out.println("available permits are " + waiting.availablePermits());
 		} catch (Exception e) {
 			System.out.println("Semaphore exception " + e.toString());
+		} finally {
+			waiting.release();
 		}
 	}
 
@@ -38,6 +42,9 @@ public class SemaphoreSync implements Synchronisable {
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
 		// TODO Auto-generated method stub
+
+
+		
 
 	}
 	@Override
