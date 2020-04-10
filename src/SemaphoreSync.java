@@ -16,6 +16,14 @@ public class SemaphoreSync implements Synchronisable {
 
 	Phase phase; 
 
+	private class Group {
+		final Semaphore Groups = new Semaphore(4,true);
+		private int groupID;
+
+		Group(int id) {this.groupID = id;}
+		Group(){}
+	}
+
 
 	SemaphoreSync (Phase p){ 
 		this.phase = p; // Phase of testing being performed
@@ -26,6 +34,7 @@ public class SemaphoreSync implements Synchronisable {
 	@Override
 	public void waitForThreads() {
 		try {
+
 			waiting.acquire();
 			while(empty.availablePermits() == 0){}
 
@@ -42,14 +51,19 @@ public class SemaphoreSync implements Synchronisable {
 
 		} catch (Exception e) {
 			System.out.println("Semaphore exception " + e.toString());
+		} finally {
+			waiting.release();
 		}
 	}
 
-
+	private Group group[] = new Group[1];
 
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
 		// TODO Auto-generated method stub
+
+
+		
 
 	}
 	@Override
