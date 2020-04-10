@@ -31,13 +31,20 @@ public class IntrinsicSync implements Synchronisable {
 		this.phase = p; // Phase of testing being performed
 	}
 
+	int currentGroupID = -1;
+	Group holder[] = new Group[100];
+	int i = 1;
+
 	private class Group{
 		private final int threadLimit = 4;
 		private int count = 0;
 		private int released = 0;
 		private int groupID;
 
-		Group(int id) {this.groupID = id;}
+		Group(int id) {
+			this.groupID = id;
+		}
+
 		Group(){}
 
 		private void waitThreads(){
@@ -85,17 +92,36 @@ public class IntrinsicSync implements Synchronisable {
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
 		// TODO Auto-generated method stub
+		call(groupId);
 
+	}
+
+	private synchronized void call(int groupId) {
 		//Setting up new group if it doesn't exist in array
-		if (group[groupId] == null){
-			expandArray(groupId);
-			group[groupId] = new Group(groupId);
-		}
+		try {
+			// check if the group array can support the new group
+			if (group.length < groupId + 1) {
+				// deepcopy the existing array
+				IntrinsicSync.Group tempArray[] = new IntrinsicSync.Group[group.length];
+				System.arraycopy(group, 0, tempArray, 0, group.length);
+				// create the new array with a sufficient number of group allocations
+				group = new IntrinsicSync.Group[groupId * 2];
 
+				// deepcopy the temp array back into the new one
+				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
+			}
+		} catch (Exception e) {
+			System.out.println(e.toString());
+		} finally {
+			if (group[groupId] == null) {
+				group[groupId] = new IntrinsicSync.Group(groupId);
+			}
+		}
 		group[groupId].waitThreads();
 
 	}
 
+	/*
 	private synchronized Group[] expandArray(int groupId){
 		// check if the group array can support the new group
 		if (group.length < groupId+1){
@@ -112,7 +138,7 @@ public class IntrinsicSync implements Synchronisable {
 
 		return group;
 	}
-
+	*/
 
 
 
