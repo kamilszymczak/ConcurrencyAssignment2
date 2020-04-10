@@ -29,15 +29,26 @@ public class SemaphoreSync implements Synchronisable {
 		this.phase = p; // Phase of testing being performed
 	}
 	final Semaphore waiting = new Semaphore(4,true);
+	final Semaphore empty = new Semaphore(1,true);
 
 	@Override
 	public void waitForThreads() {
 		try {
 
 			waiting.acquire();
-			while (waiting.availablePermits() > 4);
-			//waiting.release();
-			//System.out.println("available permits are " + waiting.availablePermits());
+			while(empty.availablePermits() == 0){}
+
+			//Thread inside when here
+
+			while (waiting.availablePermits() != 0);
+			empty.tryAcquire();
+
+			waiting.release();
+			//Thread out when here
+			if(waiting.availablePermits() == 4){
+				empty.release();
+			}
+
 		} catch (Exception e) {
 			System.out.println("Semaphore exception " + e.toString());
 		} finally {
