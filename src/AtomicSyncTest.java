@@ -42,7 +42,7 @@ public class AtomicSyncTest {
 
             //termThreads = finished.size();
         //while not terminated or timed out
-        while (termThreads != expectedThreads && (timeNow - beginWait) != waitLimit){
+        while (termThreads != expectedThreads && (timeNow - beginWait) < waitLimit){
             try{ Thread.sleep(10);} catch (Exception e){System.out.println("Exception "+e.toString());}
             termThreads = 0;
 

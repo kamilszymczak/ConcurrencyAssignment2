@@ -41,7 +41,7 @@ class ExtrinsicSyncTest {
 		long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
 
 		//termThreads = finished.size();
-		while (termThreads != expectedThreads && (timeNow - beginWait) != waitLimit){
+		while (termThreads != expectedThreads && (timeNow - beginWait) < waitLimit){
 			try{ Thread.sleep(10);} catch (Exception e){System.out.println("Exception "+e.toString());}
 			termThreads = 0;
 
