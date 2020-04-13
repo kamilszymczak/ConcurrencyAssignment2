@@ -1,26 +1,30 @@
-
-import java.time.ZonedDateTime;
-import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Stack;
+import java.time.ZonedDateTime;
+import java.util.*;
 
-/**
- * 
- * Example stub JUnit test for class IntrinsicSync
- * 
- * Note that you need to test each of your 4 classes
- *
- */
+public class IntrinsicSyncTest {
 
+	private int largestMultipleFour(int x){
+		while (x % 4 != 0){
+			x--;
+		}
+		return x;
+	}
 
-
-
-class IntrinsicSyncTest {
-
+	private Thread[] initP1Test(int initThreads){
+		final IntrinsicSync intrinsic = new IntrinsicSync(Phase.ONE);
+		Thread threads[] = new Thread[initThreads];
+		for (int i = 0 ; i < initThreads; i++){
+			threads[i] = new Thread(new ThreadTester(intrinsic));
+			threads[i].start();
+		}
+		return threads;
+	}
 
 	private int terminateThreads (Thread threads[], int expectedThreads){
 		// counter for the number of terminated threads
@@ -38,7 +42,7 @@ class IntrinsicSyncTest {
 
 		//termThreads = finished.size();
 		//while not terminated or timed out
-		while (termThreads != expectedThreads && (timeNow - beginWait) < waitLimit){
+		while (termThreads != expectedThreads && (timeNow - beginWait) != waitLimit){
 			try{ Thread.sleep(10);} catch (Exception e){System.out.println("Exception "+e.toString());}
 			termThreads = 0;
 
@@ -60,38 +64,16 @@ class IntrinsicSyncTest {
 		}
 		return termThreads;
 	}
-	//Note it is expected that you may need multiple tests for each phase 
-	//Hence the structure below
 
-	private int largestMultipleFour(int x){
-		while (x % 4 != 0){
-			x--;
-		}
-		return x;
-	}
-	
 	@Test
 	void testPhase1a() {
-		IntrinsicSync sync = new IntrinsicSync(Phase.ONE);
+		final int initThreads = 8;
+		final int expectedThreads = largestMultipleFour(initThreads);
 
+		Thread threads[] = initP1Test(initThreads);
 
-		Random rand = new Random();
-		int amount = rand.nextInt(50);
-		System.out.println(amount + " threads");
-		final int initThreads = amount;
-
-
-		//Create some threads
-		//test method atomic.waitForThreads()
-		Thread threads[] = new Thread[initThreads];
-
-		for (int i = 0 ; i < initThreads; i++){
-			threads[i] = new Thread(new ThreadTester(sync));
-			threads[i].start();
-		}
-
-
-		try{ Thread.sleep(initThreads * 5);} catch (Exception e){System.out.println("Exception "+e.toString());}
+		// wait until all threads terminate
+		int termThreads = terminateThreads(threads, expectedThreads);
 
 		Stack threadStack = new Stack<Thread>();
 
@@ -100,13 +82,13 @@ class IntrinsicSyncTest {
 		}
 
 		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
-
-
+		assertEquals(expectedThreads, termThreads, "Unexpected number of threads have terminated");
 	}
 
+	// paramterized test to test a range of thread numbers
 	@ParameterizedTest(name="Run {index}")
 	@ValueSource(ints = {0, 1, 3, 4, 7, 8, 10, 12, 25, 36, 50, 100, 123, 523})
-	void testPhase1b() {
+	public void testPhase1b(int initThreads) throws Throwable {
 		final int expectedThreads = largestMultipleFour(initThreads);
 		Thread threads[] = initP1Test(initThreads);
 
@@ -119,9 +101,8 @@ class IntrinsicSyncTest {
 		}
 		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
 		assertEquals(expectedThreads, termThreads, "Unexpected number of threads have terminated");
-	}	
-	//etc
-	
+	}
+
 	@Test
 	void testPhase2a() {
 		// testing 2 groups
@@ -136,13 +117,13 @@ class IntrinsicSyncTest {
 		final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
 		System.out.println("Number of threads: "+initThreads);
 		//final int initThreads = 50;
-		IntrinsicSync intrin = new IntrinsicSync(Phase.TWO);
+		IntrinsicSync intrinsic = new IntrinsicSync(Phase.TWO);
 		Thread threads[] = new Thread[initThreads];
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(intrin, 0));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(intrin, 1)));
+			threads[i] = new Thread(new ThreadTester(intrinsic, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(intrinsic, 1)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
@@ -172,14 +153,103 @@ class IntrinsicSyncTest {
 		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
 	}
 	//etc
-	
+
+	@ParameterizedTest(name="Run {index}")
+	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+	void testPhase2b(int threadBound){
+		Random rand = new Random();
+
+		int x = rand.nextInt(threadBound);
+
+		// instantiate a random (even) number of threads
+		final int initThreads = (x%2 == 0 ? x : ++x);
+		final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
+		System.out.println("Number of threads: "+initThreads);
+		//final int initThreads = 50;
+		IntrinsicSync intrinsic = new IntrinsicSync(Phase.TWO);
+		Thread threads[] = new Thread[initThreads];
+
+		// Even number required for this thread assignment strategy
+		for (int i = 0 ; i < initThreads/2; i++){
+			threads[i] = new Thread(new ThreadTester(intrinsic, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(intrinsic, 1)));
+			threads[i].start();
+			threads[i+(initThreads/2)].start();
+		}
+
+		Thread threadG1[] = new Thread[initThreads/2];
+		Thread threadG2[] = new Thread[initThreads/2];
+		System.arraycopy(threads, 0, threadG1, 0, threadG1.length);
+		System.arraycopy(threads, initThreads/2, threadG2, 0, threadG2.length);
+
+		int termThreadsG1 = terminateThreads(threadG1, expectedThreadsPerGroup);
+		int termThreadsG2 = terminateThreads(threadG2, expectedThreadsPerGroup);
+
+		Stack threadStack = new Stack<Thread>();
+		Stack groupZeroStack = new Stack<Thread>();
+		Stack groupOneStack = new Stack<Thread>();
+
+		for (Thread startedThreads : threads){
+			if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
+		}
+
+		for (int i = 0 ; i < initThreads/2; i++){
+			if (threads[i].getState() == Thread.State.TERMINATED) groupZeroStack.push(threads[i]);
+			if (threads[i+(initThreads/2)].getState() == Thread.State.TERMINATED) groupOneStack.push(threads[i+(initThreads/2)]);
+		}
+
+		assertEquals(expectedThreadsPerGroup, groupZeroStack.size(), "Wrong number of threads in group 0");
+		assertEquals(expectedThreadsPerGroup, groupOneStack.size(), "Wrong number of threads in group 1");
+		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
+	}
+
+	@ParameterizedTest(name="Run {index}")
+	@ValueSource(ints = {4, 7, 10, 12, 19, 20, 21, 27, 100/* HAMMER YOUR CPU, 500 */})
+	void testPhase2c(int threadBound){
+		Random rand = new Random();
+		int x = rand.nextInt(threadBound);
+		final int numOfGroups = x > 0 ? x : 1;
+		final int initThreads = rand.nextInt(threadBound*15);
+		System.out.println("Number of threads: "+initThreads);
+
+		IntrinsicSync intrinsic = new IntrinsicSync(Phase.TWO);
+		Thread threads[] = new Thread[initThreads];
+		int groups[] = new int[numOfGroups + 1];
+
+		for (int i = 0; i < initThreads; i++){
+			int gid = rand.nextInt(numOfGroups);
+
+			threads[i] = new Thread(new ThreadTester(intrinsic, gid));
+			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
+			threads[i].start();
+			groups[gid]++;
+		}
+
+		int expectedThreads = 0;
+
+		for (int i = 0; i < numOfGroups; i++){
+			System.out.println("Threads terminating from group " + i +": "+ largestMultipleFour(groups[i]) );
+			expectedThreads += largestMultipleFour(groups[i]);
+		}
+
+		int termThreads = terminateThreads(threads, expectedThreads);
+
+		Stack threadStack = new Stack<Thread>();
+
+		for (Thread startedThreads : threads){
+			if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
+		}
+
+		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
+	}
+
 	@Test
 	void testPhase3a() {
-		IntrinsicSync sync = new IntrinsicSync(Phase.THREE);
+		IntrinsicSync intrinsic = new IntrinsicSync(Phase.THREE);
 		//Create some threads
-		//test method sync.finished
+		//test method intrinsic.finished
 		fail("Not yet implemented");
-	}	
-	//etc	
+	}
+	//etc
 
 }
