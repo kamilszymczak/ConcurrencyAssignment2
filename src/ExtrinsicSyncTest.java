@@ -1,29 +1,29 @@
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.ZonedDateTime;
-import java.util.Random;
-import java.util.Stack;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+public class ExtrinsicSyncTest {
 
-/**
- * 
- * Example stub JUnit test for class ExtrinsicSync
- * 
- * Note that you need to test each of your 4 classes
- *
- */
-class ExtrinsicSyncTest {
-	//Note it is expected that you may need multiple tests for each phase 
-	//Hence the structure below
 	private int largestMultipleFour(int x){
 		while (x % 4 != 0){
 			x--;
 		}
 		return x;
+	}
+
+	private Thread[] initP1Test(int initThreads){
+		final ExtrinsicSync extrinsic = new ExtrinsicSync(Phase.ONE);
+		Thread threads[] = new Thread[initThreads];
+		for (int i = 0 ; i < initThreads; i++){
+			threads[i] = new Thread(new ThreadTester(extrinsic));
+			threads[i].start();
+		}
+		return threads;
 	}
 
 	private int terminateThreads (Thread threads[], int expectedThreads){
@@ -41,6 +41,7 @@ class ExtrinsicSyncTest {
 		long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
 
 		//termThreads = finished.size();
+		//while not terminated or timed out
 		while (termThreads != expectedThreads && (timeNow - beginWait) < waitLimit){
 			try{ Thread.sleep(10);} catch (Exception e){System.out.println("Exception "+e.toString());}
 			termThreads = 0;
@@ -63,21 +64,16 @@ class ExtrinsicSyncTest {
 		}
 		return termThreads;
 	}
-	
+
 	@Test
 	void testPhase1a() {
-		final int initThreads = 9;
-		ExtrinsicSync extrinsic = new ExtrinsicSync(Phase.ONE);
+		final int initThreads = 7000;
+		final int expectedThreads = largestMultipleFour(initThreads);
 
-		//Create some threads
-		Thread threads[] = new Thread[initThreads];
+		Thread threads[] = initP1Test(initThreads);
 
-		for (int i = 0 ; i < initThreads; i++){
-			threads[i] = new Thread(new ThreadTester(extrinsic));
-			threads[i].start();
-		}
-
-		try{ Thread.sleep(initThreads);} catch (Exception e){System.out.println("Exception "+e.toString());}
+		// wait until all threads terminate
+		int termThreads = terminateThreads(threads, expectedThreads);
 
 		Stack threadStack = new Stack<Thread>();
 
@@ -86,39 +82,58 @@ class ExtrinsicSyncTest {
 		}
 
 		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
+		assertEquals(expectedThreads, termThreads, "Unexpected number of threads have terminated");
+	}
 
-	}	
-	@Test
-	void testPhase1b() {
-		ExtrinsicSync sync = new ExtrinsicSync(Phase.ONE);
-		//Create some threads
-		//test method sync.waitForThreadsInGroup
-		fail("Not yet implemented");
-	}	
-	//etc
-	
+	// paramterized test to test a range of thread numbers
+	@ParameterizedTest(name="Run {index}")
+	@ValueSource(ints = {0, 1, 3, 4, 7, 8, 10, 12, 25, 36, 50, 100, 123, 523})
+	public void testPhase1b(int initThreads) throws Throwable {
+		final int expectedThreads = largestMultipleFour(initThreads);
+		Thread threads[] = initP1Test(initThreads);
+
+		int termThreads = terminateThreads(threads, expectedThreads);
+
+		Stack threadStack = new Stack<Thread>();
+
+		for (Thread startedThreads : threads){
+			if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
+		}
+		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
+		assertEquals(expectedThreads, termThreads, "Unexpected number of threads have terminated");
+	}
+
 	@Test
 	void testPhase2a() {
-		Random rand = new Random();
+		// testing 2 groups
 
-		int x = rand.nextInt(50);
+		//Random rand = new Random();
+		//int x = rand.nextInt(50);
 
 		// instantiate a random (even) number of threads
+		//final int initThreads = (x%2 == 0 ? x : ++x);
+		int x = 0;
 		final int initThreads = (x%2 == 0 ? x : ++x);
+		final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
 		System.out.println("Number of threads: "+initThreads);
 		//final int initThreads = 50;
-		ExtrinsicSync sync = new ExtrinsicSync(Phase.TWO);
+		ExtrinsicSync atomic = new ExtrinsicSync(Phase.TWO);
 		Thread threads[] = new Thread[initThreads];
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(sync, 0));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(sync, 1)));
+			threads[i] = new Thread(new ThreadTester(atomic, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
+		Thread threadG1[] = new Thread[initThreads/2];
+		Thread threadG2[] = new Thread[initThreads/2];
+		System.arraycopy(threads, 0, threadG1, 0, threadG1.length);
+		System.arraycopy(threads, initThreads/2, threadG2, 0, threadG2.length);
 
-		try{ Thread.sleep(initThreads*2+500);} catch (Exception e){System.out.println("Exception "+e.toString());}
+		int termThreadsG1 = terminateThreads(threadG1, expectedThreadsPerGroup);
+		int termThreadsG2 = terminateThreads(threadG2, expectedThreadsPerGroup);
 
 		Stack threadStack = new Stack<Thread>();
 		Stack groupZeroStack = new Stack<Thread>();
@@ -133,10 +148,11 @@ class ExtrinsicSyncTest {
 			if (threads[i+(initThreads/2)].getState() == Thread.State.TERMINATED) groupOneStack.push(threads[i+(initThreads/2)]);
 		}
 
-		assertEquals(largestMultipleFour(initThreads/2), groupZeroStack.size(), "Wrong number of threads in group 0");
-		assertEquals(largestMultipleFour(initThreads/2), groupOneStack.size(), "Wrong number of threads in group 1");
+		assertEquals(expectedThreadsPerGroup, groupZeroStack.size(), "Wrong number of threads in group 0");
+		assertEquals(expectedThreadsPerGroup, groupOneStack.size(), "Wrong number of threads in group 1");
 		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
 	}
+	//etc
 
 	@ParameterizedTest(name="Run {index}")
 	@ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
@@ -150,13 +166,13 @@ class ExtrinsicSyncTest {
 		final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
 		System.out.println("Number of threads: "+initThreads);
 		//final int initThreads = 50;
-		ExtrinsicSync sync = new ExtrinsicSync(Phase.TWO);
+		ExtrinsicSync atomic = new ExtrinsicSync(Phase.TWO);
 		Thread threads[] = new Thread[initThreads];
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(sync, 0));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(sync, 1)));
+			threads[i] = new Thread(new ThreadTester(atomic, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
@@ -196,14 +212,14 @@ class ExtrinsicSyncTest {
 		final int initThreads = rand.nextInt(threadBound*15);
 		System.out.println("Number of threads: "+initThreads);
 
-		ExtrinsicSync sync = new ExtrinsicSync(Phase.TWO);
+		ExtrinsicSync extrinsic = new ExtrinsicSync(Phase.TWO);
 		Thread threads[] = new Thread[initThreads];
 		int groups[] = new int[numOfGroups + 1];
 
 		for (int i = 0; i < initThreads; i++){
 			int gid = rand.nextInt(numOfGroups);
 
-			threads[i] = new Thread(new ThreadTester(sync, gid));
+			threads[i] = new Thread(new ThreadTester(extrinsic, gid));
 			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
 			threads[i].start();
 			groups[gid]++;
@@ -227,14 +243,13 @@ class ExtrinsicSyncTest {
 		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
 	}
 
-	
 	@Test
 	void testPhase3a() {
-		ExtrinsicSync sync = new ExtrinsicSync(Phase.THREE);
+		ExtrinsicSync extrinsic = new ExtrinsicSync(Phase.THREE);
 		//Create some threads
-		//test method sync.finished
+		//test method extrinsic.finished
 		fail("Not yet implemented");
-	}	
-	//etc	
+	}
+	//etc
 
 }
