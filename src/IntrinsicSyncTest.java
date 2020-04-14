@@ -17,10 +17,10 @@ public class IntrinsicSyncTest {
 	}
 
 	private Thread[] initP1Test(int initThreads){
-		final IntrinsicSync intrinsic = new IntrinsicSync(Phase.ONE);
+		final IntrinsicSync intrin = new IntrinsicSync(Phase.ONE);
 		Thread threads[] = new Thread[initThreads];
 		for (int i = 0 ; i < initThreads; i++){
-			threads[i] = new Thread(new ThreadTester(intrinsic));
+			threads[i] = new Thread(new ThreadTester(intrin));
 			threads[i].start();
 		}
 		return threads;
@@ -166,13 +166,13 @@ public class IntrinsicSyncTest {
 		final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
 		System.out.println("Number of threads: "+initThreads);
 		//final int initThreads = 50;
-		IntrinsicSync intrinsic = new IntrinsicSync(Phase.TWO);
+		IntrinsicSync intrin = new IntrinsicSync(Phase.TWO);
 		Thread threads[] = new Thread[initThreads];
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(intrinsic, 0));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(intrinsic, 1)));
+			threads[i] = new Thread(new ThreadTester(intrin, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(intrin, 1)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
@@ -212,14 +212,14 @@ public class IntrinsicSyncTest {
 		final int initThreads = rand.nextInt(threadBound*15);
 		System.out.println("Number of threads: "+initThreads);
 
-		IntrinsicSync intrinsic = new IntrinsicSync(Phase.TWO);
+		IntrinsicSync intrin = new IntrinsicSync(Phase.TWO);
 		Thread threads[] = new Thread[initThreads];
 		int groups[] = new int[numOfGroups + 1];
 
 		for (int i = 0; i < initThreads; i++){
 			int gid = rand.nextInt(numOfGroups);
 
-			threads[i] = new Thread(new ThreadTester(intrinsic, gid));
+			threads[i] = new Thread(new ThreadTester(intrin, gid));
 			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
 			threads[i].start();
 			groups[gid]++;
@@ -245,9 +245,9 @@ public class IntrinsicSyncTest {
 
 	@Test
 	void testPhase3a() {
-		IntrinsicSync intrinsic = new IntrinsicSync(Phase.THREE);
+		IntrinsicSync intrin = new IntrinsicSync(Phase.THREE);
 		//Create some threads
-		//test method intrinsic.finished
+		//test method intrin.finished
 		fail("Not yet implemented");
 	}
 	//etc
