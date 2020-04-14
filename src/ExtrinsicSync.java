@@ -82,7 +82,7 @@ public class ExtrinsicSync implements Synchronisable {
 				notEmpty.signalAll();
 				realesed++;
 
-				System.out.println("After signal" + realesed);
+				//System.out.println("After signal" + realesed);
 
 			} finally {
 				lock.unlock();
