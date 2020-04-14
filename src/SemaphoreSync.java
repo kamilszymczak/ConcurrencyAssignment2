@@ -16,6 +16,7 @@ public class SemaphoreSync implements Synchronisable {
 
 	Phase phase;
 	final Semaphore D = new Semaphore(4,true);
+
 	private class Group {
 
 		final Semaphore A = new Semaphore(1, true);
@@ -81,6 +82,9 @@ public class SemaphoreSync implements Synchronisable {
 				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
 			}
 
+		} catch (Exception e) {
+			System.out.println(e.toString());
+
 		} finally {
 			if(group[groupId] == null){
 				group[groupId] = new SemaphoreSync.Group(groupId);
@@ -89,9 +93,6 @@ public class SemaphoreSync implements Synchronisable {
 			D.release();
 			group[groupId].waitThreads();
 		}
-
-
-		
 
 	}
 	@Override
