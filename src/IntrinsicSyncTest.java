@@ -117,13 +117,13 @@ public class IntrinsicSyncTest {
 		final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
 		System.out.println("Number of threads: "+initThreads);
 		//final int initThreads = 50;
-		IntrinsicSync intrin = new IntrinsicSync(Phase.TWO);
+		IntrinsicSync intrinsic = new IntrinsicSync(Phase.TWO);
 		Thread threads[] = new Thread[initThreads];
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(intrin, 0));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(intrin, 1)));
+			threads[i] = new Thread(new ThreadTester(intrinsic, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(intrinsic, 1)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
