@@ -15,8 +15,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ExtrinsicSync implements Synchronisable {
 	Phase phase;
 	private final ReentrantLock lock = new ReentrantLock();
-	private final Condition inUse  = lock.newCondition();
-	private boolean used = false;
 
 	// Constructor
 	ExtrinsicSync (Phase p){
