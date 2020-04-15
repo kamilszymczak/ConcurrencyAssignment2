@@ -5,7 +5,7 @@ public class ThreadTester implements Runnable {
     ExtrinsicSync extS = null;
     IntrinsicSync intS = null;
     public int gid = 0;
-    boolean groupSet = false;
+    Phase phase;
     Init concept;
     public Boolean terminated = false;
 
@@ -31,36 +31,37 @@ public class ThreadTester implements Runnable {
         this.concept = Init.INTRINSIC;
     }
 
-    public ThreadTester(AtomicSync a, int id){
+
+    public ThreadTester(AtomicSync a, int id, Phase phase){
         this.atomic = a;
         this.concept = Init.ATOMIC;
         this.gid = id;
-        this.groupSet = true;
+        this.phase = phase;
     }
 
-    public ThreadTester(SemaphoreSync s, int id){
+    public ThreadTester(SemaphoreSync s, int id, Phase phase){
         this.semp = s;
         this.concept = Init.SEMAPHORE;
         this.gid = id;
-        this.groupSet = true;
+        this.phase = phase;
     }
 
-    public ThreadTester(ExtrinsicSync e, int id){
+    public ThreadTester(ExtrinsicSync e, int id, Phase phase){
         this.extS = e;
         this.concept = Init.EXTRINSIC;
         this.gid = id;
-        this.groupSet = true;
+        this.phase = phase;
     }
 
-    public ThreadTester(IntrinsicSync i, int id){
+    public ThreadTester(IntrinsicSync i, int id, Phase phase){
         this.intS = i;
         this.concept = Init.INTRINSIC;
         this.gid = id;
-        this.groupSet = true;
+        this.phase = phase;
     }
 
     private void pickMethod(){
-        if (groupSet == false ){
+        if (phase == Phase.ONE){
             switch (concept){
                 case ATOMIC: atomic.waitForThreads();
                     break;
@@ -88,6 +89,20 @@ public class ThreadTester implements Runnable {
     public void run(){
         this.pickMethod();
         //System.out.println("This is a thread from group: "+gid+" executing");
+
+        if(phase == Phase.THREE){
+            switch (concept){
+                case ATOMIC: atomic.finished(gid);
+                    break;
+                case SEMAPHORE: semp.finished(gid);
+                    break;
+                case EXTRINSIC: extS.finished(gid);
+                    break;
+                case INTRINSIC: intS.finished(gid);
+                    break;
+            }
+        }
+
         terminated = true;
     }
 }
