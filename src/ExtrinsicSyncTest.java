@@ -122,8 +122,8 @@ public class ExtrinsicSyncTest {
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(atomic, 0, Phase.TWO));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1, Phase.TWO)));
+			threads[i] = new Thread(new ThreadTester(atomic, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
@@ -171,8 +171,8 @@ public class ExtrinsicSyncTest {
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(atomic, 0, Phase.TWO));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1, Phase.TWO)));
+			threads[i] = new Thread(new ThreadTester(atomic, 0));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
@@ -219,7 +219,7 @@ public class ExtrinsicSyncTest {
 		for (int i = 0; i < initThreads; i++){
 			int gid = rand.nextInt(numOfGroups);
 
-			threads[i] = new Thread(new ThreadTester(extrinsic, gid, Phase.TWO));
+			threads[i] = new Thread(new ThreadTester(extrinsic, gid));
 			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
 			threads[i].start();
 			groups[gid]++;
@@ -261,7 +261,7 @@ public class ExtrinsicSyncTest {
 		for (int i = 0; i < initThreads; i++){
 			int gid = rand.nextInt(numOfGroups);
 
-			threads[i] = new Thread(new ThreadTester(extrinsic, gid, Phase.THREE));
+			threads[i] = new Thread(new ThreadTester(extrinsic, gid));
 			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
 			threads[i].start();
 			groups[gid]++;
