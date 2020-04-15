@@ -32,32 +32,32 @@ public class ThreadTester implements Runnable {
     }
 
 
-    public ThreadTester(AtomicSync a, int id, Phase phase){
+    public ThreadTester(AtomicSync a, int id){
         this.atomic = a;
         this.concept = Init.ATOMIC;
         this.gid = id;
-        this.phase = phase;
+        this.phase = a.phase;
     }
 
-    public ThreadTester(SemaphoreSync s, int id, Phase phase){
+    public ThreadTester(SemaphoreSync s, int id){
         this.semp = s;
         this.concept = Init.SEMAPHORE;
         this.gid = id;
-        this.phase = phase;
+        this.phase = s.phase;
     }
 
-    public ThreadTester(ExtrinsicSync e, int id, Phase phase){
+    public ThreadTester(ExtrinsicSync e, int id){
         this.extS = e;
         this.concept = Init.EXTRINSIC;
         this.gid = id;
-        this.phase = phase;
+        this.phase = e.phase;
     }
 
-    public ThreadTester(IntrinsicSync i, int id, Phase phase){
+    public ThreadTester(IntrinsicSync i, int id){
         this.intS = i;
         this.concept = Init.INTRINSIC;
         this.gid = id;
-        this.phase = phase;
+        this.phase = i.phase;
     }
 
     private void pickMethod(){
