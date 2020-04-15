@@ -122,8 +122,8 @@ public class ExtrinsicSyncTest {
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(atomic, 0));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1)));
+			threads[i] = new Thread(new ThreadTester(atomic, 0, Phase.TWO));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1, Phase.TWO)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
@@ -171,8 +171,8 @@ public class ExtrinsicSyncTest {
 
 		// Even number required for this thread assignment strategy
 		for (int i = 0 ; i < initThreads/2; i++){
-			threads[i] = new Thread(new ThreadTester(atomic, 0));
-			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1)));
+			threads[i] = new Thread(new ThreadTester(atomic, 0, Phase.TWO));
+			threads[i+(initThreads/2)] = new Thread((new ThreadTester(atomic, 1, Phase.TWO)));
 			threads[i].start();
 			threads[i+(initThreads/2)].start();
 		}
@@ -219,7 +219,7 @@ public class ExtrinsicSyncTest {
 		for (int i = 0; i < initThreads; i++){
 			int gid = rand.nextInt(numOfGroups);
 
-			threads[i] = new Thread(new ThreadTester(extrinsic, gid));
+			threads[i] = new Thread(new ThreadTester(extrinsic, gid, Phase.TWO));
 			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
 			threads[i].start();
 			groups[gid]++;
@@ -243,12 +243,48 @@ public class ExtrinsicSyncTest {
 		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
 	}
 
+	@ParameterizedTest(name="Run {index}")
+	@ValueSource(ints = {4, 7, 10, 12, 19, 20, 21, 27, 100/* HAMMER YOUR CPU, 500 */})
 	@Test
-	void testPhase3a() {
+	void testPhase3a(int threadBound) {
+
+		Random rand = new Random();
+		int x = rand.nextInt(threadBound);
+		final int numOfGroups = x > 0 ? x : 1;
+		final int initThreads = rand.nextInt(threadBound*15);
+		System.out.println("Number of threads: "+initThreads);
+
 		ExtrinsicSync extrinsic = new ExtrinsicSync(Phase.THREE);
-		//Create some threads
-		//test method extrinsic.finished
-		fail("Not yet implemented");
+		Thread threads[] = new Thread[initThreads];
+		int groups[] = new int[numOfGroups + 1];
+
+		for (int i = 0; i < initThreads; i++){
+			int gid = rand.nextInt(numOfGroups);
+
+			threads[i] = new Thread(new ThreadTester(extrinsic, gid, Phase.THREE));
+			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
+			threads[i].start();
+			groups[gid]++;
+			//call finished when thread finishes doing his work
+			extrinsic.finished(gid);
+		}
+
+		int expectedThreads = 0;
+
+		for (int i = 0; i < numOfGroups; i++){
+			System.out.println("Threads terminating from group " + i +": "+ largestMultipleFour(groups[i]) );
+			expectedThreads += largestMultipleFour(groups[i]);
+		}
+
+		int termThreads = terminateThreads(threads, expectedThreads);
+
+		Stack threadStack = new Stack<Thread>();
+
+		for (Thread startedThreads : threads){
+			if (startedThreads.getState() == Thread.State.TERMINATED) threadStack.push(startedThreads);
+		}
+
+		assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
 	}
 	//etc
 
