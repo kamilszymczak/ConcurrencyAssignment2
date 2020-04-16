@@ -56,6 +56,7 @@ public class IntrinsicSync implements Synchronisable {
 		}
 
 		private synchronized void put() throws InterruptedException {
+
 			while(count == threadLimit){
 				wait();
 			}
@@ -63,6 +64,15 @@ public class IntrinsicSync implements Synchronisable {
 			count++;
 			//System.out.println("Passed put" + count);
 			this.take();
+
+			//when released is 4 signal to unblock threads until 4 more threads are inside take()
+			if(phase != Phase.THREE){
+				if(released == threadLimit){
+					count = 0;
+					released = 0;
+					notifyAll();
+				}
+			}
 
 			if(released == 4){
 				count = 0;
@@ -76,7 +86,19 @@ public class IntrinsicSync implements Synchronisable {
 				wait();
 			}
 			notifyAll();
-			released++;
+			if(phase != Phase.THREE){
+				released++;
+			}
+		}
+
+		private void finished(){
+
+				released++;
+				if(released == threadLimit){
+					count = 0;
+					released = 0;
+					notifyAll();
+				}
 		}
 
 	}
@@ -93,7 +115,6 @@ public class IntrinsicSync implements Synchronisable {
 	public void waitForThreadsInGroup(int groupId) {
 		// TODO Auto-generated method stub
 		call(groupId);
-
 	}
 
 	private synchronized void call(int groupId) {
@@ -120,9 +141,9 @@ public class IntrinsicSync implements Synchronisable {
 		group[groupId].waitThreads();
 
 	}
-	
+
 	@Override
 	public void finished(int groupId) {
-		// TODO Auto-generated method stub
+		group[groupId].finished();
 	}
 }
