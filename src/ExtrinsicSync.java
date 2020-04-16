@@ -59,12 +59,13 @@ public class ExtrinsicSync implements Synchronisable {
 				take();
 
 				//when released is 4 signal to unblock threads until 4 more threads are inside take()
-				if(realesed == threadLimit){
-					count = 0;
-					realesed = 0;
-					notFull.signalAll();
+				if(phase != Phase.THREE){
+					if(realesed == threadLimit){
+						count = 0;
+						realesed = 0;
+						notFull.signalAll();
+					}
 				}
-
 			} finally {
 				lock.unlock();
 			}
@@ -78,14 +79,33 @@ public class ExtrinsicSync implements Synchronisable {
 					notEmpty.await();
 
 				notEmpty.signalAll();
-				realesed++;
+				if(phase != Phase.THREE){
+					realesed++;
+				}
 
 				//System.out.println("After signal" + realesed);
-
 			} finally {
 				lock.unlock();
 			}
 		}
+
+
+		private void finished(){
+			lock.lock();
+			try {
+				realesed++;
+				if(realesed == threadLimit){
+					count = 0;
+					realesed = 0;
+					notFull.signalAll();
+				}
+			} finally {
+				lock.unlock();
+			}
+
+		}
+
+
 	}
 
 	private final Group fourThreads = new Group();
@@ -129,6 +149,6 @@ public class ExtrinsicSync implements Synchronisable {
 
 	@Override
 	public void finished(int groupId) {
-		// TODO Auto-generated method stub
+		group[groupId].finished();
 	}
 }
