@@ -245,7 +245,6 @@ public class ExtrinsicSyncTest {
 
 	@ParameterizedTest(name="Run {index}")
 	@ValueSource(ints = {4, 7, 10, 12, 19, 20, 21, 27, 100/* HAMMER YOUR CPU, 500 */})
-	@Test
 	void testPhase3a(int threadBound) {
 
 		Random rand = new Random();
@@ -265,8 +264,7 @@ public class ExtrinsicSyncTest {
 			System.out.println("Thread "+threads[i]+" assigned to group "+gid);
 			threads[i].start();
 			groups[gid]++;
-			//call finished when thread finishes doing his work
-			extrinsic.finished(gid);
+
 		}
 
 		int expectedThreads = 0;
