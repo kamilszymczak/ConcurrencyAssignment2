@@ -9,6 +9,10 @@ import java.util.*;
 
 public class AtomicSyncTest {
 
+    // time limit for each thread to run
+    private int timeout = 200;
+    private int p3Timeout = timeout * 100;
+
     private int largestMultipleFour(int x){
         while (x % 4 != 0){
             x--;
@@ -35,15 +39,16 @@ public class AtomicSyncTest {
         //List<Thread> finished = new ArrayList<Thread>();
 
         // timer variables, start time, updating time and max time to wait.
-        final long waitLimit = (threadsSize*20)+500;
+        final long waitLimit = (threadsSize*p3Timeout)+(p3Timeout*20);
         final long beginWait = ZonedDateTime.now().toInstant().toEpochMilli();
 
         long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
 
             //termThreads = finished.size();
         //while not terminated or timed out
-        while (termThreads != expectedThreads && (timeNow - beginWait) < waitLimit){
-            try{ Thread.sleep(10);} catch (Exception e){System.out.println("Exception "+e.toString());}
+        while (termThreads != expectedThreads && (timeNow - beginWait) <= waitLimit){
+            // sleep here to reduce cpu cycles spent checking if threads are terminated
+            try{ Thread.sleep(50);} catch (Exception e){System.out.println("Exception "+e.toString());}
             termThreads = 0;
 
             /* Too much overhead
@@ -62,6 +67,11 @@ public class AtomicSyncTest {
             }
             timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
         }
+
+        if((timeNow - beginWait) > waitLimit){
+            System.out.println("Time out! consider increasing the timeout variable");
+        }
+
         return termThreads;
     }
 
@@ -112,7 +122,7 @@ public class AtomicSyncTest {
 
         // instantiate a random (even) number of threads
         //final int initThreads = (x%2 == 0 ? x : ++x);
-        int x = 0;
+        int x = 9;
         final int initThreads = (x%2 == 0 ? x : ++x);
         final int expectedThreadsPerGroup = largestMultipleFour(initThreads/2);
         System.out.println("Number of threads: "+initThreads);
@@ -148,6 +158,8 @@ public class AtomicSyncTest {
             if (threads[i+(initThreads/2)].getState() == Thread.State.TERMINATED) groupOneStack.push(threads[i+(initThreads/2)]);
         }
 
+        assertEquals(expectedThreadsPerGroup, termThreadsG1, "Group 0 wrong number of terminated threads");
+        assertEquals(expectedThreadsPerGroup, termThreadsG2, "Group 1 wrong number of terminated threads");
         assertEquals(expectedThreadsPerGroup, groupZeroStack.size(), "Wrong number of threads in group 0");
         assertEquals(expectedThreadsPerGroup, groupOneStack.size(), "Wrong number of threads in group 1");
         assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
@@ -198,6 +210,8 @@ public class AtomicSyncTest {
             if (threads[i+(initThreads/2)].getState() == Thread.State.TERMINATED) groupOneStack.push(threads[i+(initThreads/2)]);
         }
 
+        assertEquals(expectedThreadsPerGroup, termThreadsG1, "Group 0 wrong number of terminated threads");
+        assertEquals(expectedThreadsPerGroup, termThreadsG2, "Group 1 wrong number of terminated threads");
         assertEquals(expectedThreadsPerGroup, groupZeroStack.size(), "Wrong number of threads in group 0");
         assertEquals(expectedThreadsPerGroup, groupOneStack.size(), "Wrong number of threads in group 1");
         assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
@@ -243,23 +257,89 @@ public class AtomicSyncTest {
         assertEquals (0, threadStack.size() % 4, "Number of terminated threads should be a multiple of 4");
     }
 
-    @Test
-    void testPhase3a() {
-        AtomicSync atomic = new AtomicSync(Phase.THREE);
-        //Create some threads
-        //test method atomic.finished
-        fail("Not yet implemented");
+    @ParameterizedTest(name="Run {index}")
+    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+    void testPhase2d(int threadBound){
+
+        final int initThreads = (threadBound%2 == 0 ? threadBound : ++threadBound);
+        final int expectedThreadsPerGroup = largestMultipleFour(initThreads);
+        System.out.println("Number of threads: "+initThreads);
+
+        AtomicSync atomic = new AtomicSync(Phase.TWO);
+        Thread threadG1[] = new Thread[initThreads];
+        Thread threadG2[] = new Thread[initThreads];
+
+        // Even number required for this thread assignment strategy
+        for (int i = 0 ; i < initThreads; i++){
+            threadG1[i] = new Thread(new ThreadTester(atomic, 0));
+            threadG2[i] = new Thread(new ThreadTester(atomic, 1));
+            threadG1[i].start();
+            threadG2[i].start();
+        }
+
+        int termThreadsG1 = terminateThreads(threadG1, expectedThreadsPerGroup);
+        int termThreadsG2 = terminateThreads(threadG2, expectedThreadsPerGroup);
+
+        Stack groupZeroStack = new Stack<Thread>();
+        Stack groupOneStack = new Stack<Thread>();
+
+        for (int i = 0 ; i < initThreads; i++){
+            if (threadG1[i].getState() == Thread.State.TERMINATED) groupZeroStack.push(threadG1[i]);
+            if (threadG2[i].getState() == Thread.State.TERMINATED) groupOneStack.push(threadG2[i]);
+        }
+
+        assertEquals(expectedThreadsPerGroup, termThreadsG1, "Group 0 wrong number of terminated threads");
+        assertEquals(expectedThreadsPerGroup, termThreadsG2, "Group 1 wrong number of terminated threads");
+        assertEquals(expectedThreadsPerGroup, groupZeroStack.size(), "Wrong number of threads in group 0");
+        assertEquals(expectedThreadsPerGroup, groupOneStack.size(), "Wrong number of threads in group 1");
     }
-    //etc
 
     @ParameterizedTest(name="Run {index}")
-    @ValueSource(ints = {4, 7, 10, 12, 19, 20, 21, 27, 100/* HAMMER YOUR CPU, 500 */})
+    @ValueSource(ints = {0, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+    void testPhase3a(int threadBound){
+
+        final int initThreads = (threadBound%2 == 0 ? threadBound : ++threadBound);
+        final int expectedThreadsPerGroup = largestMultipleFour(initThreads);
+        System.out.println("Number of threads per group: "+initThreads);
+
+        AtomicSync atomic = new AtomicSync(Phase.THREE);
+        Thread threadG1[] = new Thread[initThreads];
+        Thread threadG2[] = new Thread[initThreads];
+
+        // Even number required for this thread assignment strategy
+        for (int i = 0 ; i < initThreads; i++){
+            threadG1[i] = new Thread(new ThreadTester(atomic, 0));
+            threadG2[i] = new Thread(new ThreadTester(atomic, 1));
+            threadG1[i].start();
+            threadG2[i].start();
+        }
+
+        int termThreadsG1 = terminateThreads(threadG1, expectedThreadsPerGroup);
+        int termThreadsG2 = terminateThreads(threadG2, expectedThreadsPerGroup);
+
+        Stack groupZeroStack = new Stack<Thread>();
+        Stack groupOneStack = new Stack<Thread>();
+
+        for (int i = 0 ; i < initThreads; i++){
+            if (threadG1[i].getState() == Thread.State.TERMINATED) groupZeroStack.push(threadG1[i]);
+            if (threadG2[i].getState() == Thread.State.TERMINATED) groupOneStack.push(threadG2[i]);
+        }
+
+        assertEquals(expectedThreadsPerGroup, termThreadsG1, "Group 0 wrong number of terminated threads");
+        assertEquals(expectedThreadsPerGroup, termThreadsG2, "Group 1 wrong number of terminated threads");
+        assertEquals(expectedThreadsPerGroup, groupZeroStack.size(), "Wrong number of threads in group 0");
+        assertEquals(expectedThreadsPerGroup, groupOneStack.size(), "Wrong number of threads in group 1");
+    }
+
+    @ParameterizedTest(name="Run {index}")
+    @ValueSource(ints = {4, 7, 10, 12, 19, 20, 21, 27 /* HAMMER YOUR CPU, 500 */})
     void testPhase3b(int threadBound){
         Random rand = new Random();
         int x = rand.nextInt(threadBound);
         final int numOfGroups = x > 0 ? x : 1;
-        final int initThreads = rand.nextInt(threadBound*15);
+        final int initThreads = rand.nextInt(threadBound*10);
         System.out.println("Number of threads: "+initThreads);
+        System.out.println("Number of groups: "+numOfGroups);
 
         AtomicSync atomic = new AtomicSync(Phase.THREE);
         Thread threads[] = new Thread[initThreads];
@@ -269,7 +349,7 @@ public class AtomicSyncTest {
             int gid = rand.nextInt(numOfGroups);
 
             threads[i] = new Thread(new ThreadTester(atomic, gid));
-            System.out.println("Thread "+threads[i]+" assigned to group "+gid);
+            //System.out.println("Thread "+threads[i]+" assigned to group "+gid);
             threads[i].start();
             groups[gid]++;
         }
@@ -277,7 +357,7 @@ public class AtomicSyncTest {
         int expectedThreads = 0;
 
         for (int i = 0; i < numOfGroups; i++){
-            System.out.println("Threads terminating from group " + i +": "+ largestMultipleFour(groups[i]) );
+            //System.out.println("Threads terminating from group " + i +": "+ largestMultipleFour(groups[i]) );
             expectedThreads += largestMultipleFour(groups[i]);
         }
 
