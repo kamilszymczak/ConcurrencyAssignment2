@@ -21,7 +21,7 @@ public class AtomicSync implements Synchronisable {
 
 		private final AtomicInteger syncCounter = new AtomicInteger(0);
 		private final AtomicInteger leaveCounter = new AtomicInteger(4);
-		private final AtomicInteger releasedCounter = new AtomicInteger(0);
+		private final AtomicInteger releasedCounter = new AtomicInteger(4);
 		private final AtomicBoolean outLock = new AtomicBoolean(false);
 		private final AtomicBoolean innerLock = new AtomicBoolean(true);
 		private int groupID;
@@ -34,9 +34,10 @@ public class AtomicSync implements Synchronisable {
 
 		private void waitThreads() {
 			// allow at most 1 thread past this point at a time, the rest busy wait here
-			while(phase == Phase.THREE && releasedCounter.get() != 4);
+
 
 			while(!outLock.compareAndSet(false, true));
+			while(phase == Phase.THREE && releasedCounter.get() != 4 && syncCounter.get() == 4);
 			try{
 				// test number of threads inside of the outLock area
 				if (syncCounter.incrementAndGet() < 4) outLock.set(false);
@@ -62,8 +63,8 @@ public class AtomicSync implements Synchronisable {
 		}
 
 		private void finished() {
-			if (releasedCounter.incrementAndGet() == 4 && syncCounter.get() == 0){
-				releasedCounter.set(0);
+			if (releasedCounter.decrementAndGet() == 0 && syncCounter.get() == 0){
+				releasedCounter.set(4);
 			}
 		}
 	}
@@ -98,7 +99,7 @@ public class AtomicSync implements Synchronisable {
 				System.arraycopy(group, 0, tempArray, 0, group.length);
 
 				// create the new array with a sufficient number of group allocations
-				group = new Group[groupId*2];
+				group = new Group[groupId+1*2];
 
 				// deepcopy the temp array back into the new one
 				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
