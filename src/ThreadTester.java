@@ -5,6 +5,7 @@ public class ThreadTester implements Runnable {
     ExtrinsicSync extS = null;
     IntrinsicSync intS = null;
     public int gid = 0;
+    public int waitTime = 5;
     Phase phase;
     Init concept;
     public Boolean terminated = false;
@@ -89,7 +90,16 @@ public class ThreadTester implements Runnable {
     public void run(){
         this.pickMethod();
         //System.out.println("This is a thread from group: "+gid+" executing");
+        this.doStuff(waitTime);
+        this.done();
+        terminated = true;
+    }
 
+    private void doStuff(int howLong) {
+        try{ Thread.sleep(howLong);} catch (Exception e){System.out.println("Exception "+e.toString());}
+    }
+
+    private void done(){
         if(phase == Phase.THREE){
             switch (concept){
                 case ATOMIC: atomic.finished(gid);
@@ -102,7 +112,5 @@ public class ThreadTester implements Runnable {
                     break;
             }
         }
-
-        terminated = true;
     }
 }
