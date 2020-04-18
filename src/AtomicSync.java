@@ -18,8 +18,10 @@ public class AtomicSync implements Synchronisable {
 	private final AtomicBoolean groupLock = new AtomicBoolean(false);
 	// class to run an instance of waitForThreads()
 	private class Group {
+
 		private final AtomicInteger syncCounter = new AtomicInteger(0);
 		private final AtomicInteger leaveCounter = new AtomicInteger(4);
+		private final AtomicInteger releasedCounter = new AtomicInteger(0);
 		private final AtomicBoolean outLock = new AtomicBoolean(false);
 		private final AtomicBoolean innerLock = new AtomicBoolean(true);
 		private int groupID;
@@ -32,6 +34,8 @@ public class AtomicSync implements Synchronisable {
 
 		private void waitThreads() {
 			// allow at most 1 thread past this point at a time, the rest busy wait here
+			while(phase == Phase.THREE && releasedCounter.get() != 4);
+
 			while(!outLock.compareAndSet(false, true));
 			try{
 				// test number of threads inside of the outLock area
@@ -44,7 +48,7 @@ public class AtomicSync implements Synchronisable {
 
 			}catch (Exception e){
 				System.out.println("Exception in waitForThreads: "+e.toString());
-			}finally {
+			} finally {
 				// the last thread to leave will lock the innerLock boolean behind it
 				// reset the counters
 				// and finally unlock outLock
@@ -54,6 +58,12 @@ public class AtomicSync implements Synchronisable {
 					leaveCounter.set(4);
 					outLock.set(false);
 				}
+			}
+		}
+
+		private void finished() {
+			if (releasedCounter.incrementAndGet() == 4 && syncCounter.get() == 0){
+				releasedCounter.set(0);
 			}
 		}
 	}
@@ -107,6 +117,8 @@ public class AtomicSync implements Synchronisable {
 	public void finished(int groupId) {
 		// TODO Auto-generated method stub
 		// call finished when thread finshes executing its "work"
+		group[groupId].finished();
+
 	}
 }
 
