@@ -36,8 +36,16 @@ public class AtomicSync implements Synchronisable {
 			// allow at most 1 thread past this point at a time, the rest busy wait here
 
 
-			while(!outLock.compareAndSet(false, true));
-			while(phase == Phase.THREE && releasedCounter.get() != 4 && syncCounter.get() == 4);
+			while(!outLock.compareAndSet(false, true)){
+				if (Thread.currentThread().isInterrupted()){
+					break;
+				}
+			}
+			while(phase == Phase.THREE && releasedCounter.get() != 4 && syncCounter.get() == 4){
+				if (Thread.currentThread().isInterrupted()){
+					break;
+				}
+			}
 			try{
 				// test number of threads inside of the outLock area
 				if (syncCounter.incrementAndGet() < 4) outLock.set(false);
@@ -45,8 +53,11 @@ public class AtomicSync implements Synchronisable {
 				else innerLock.set(false);
 
 				// busy wait for threads being syncronised
-				while (innerLock.get() == true);
-
+				while (innerLock.get() == true){
+					if (Thread.currentThread().isInterrupted()){
+						break;
+					}
+				}
 			}catch (Exception e){
 				System.out.println("Exception in waitForThreads: "+e.toString());
 			} finally {
@@ -89,35 +100,64 @@ public class AtomicSync implements Synchronisable {
 
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
-		// 1 thread can modify the Group array at a given time
-		while(!groupLock.compareAndSet(false, true));
-		try {
-			// check if the group array can support the new group
-			if (group.length < groupId+1){
-				// deepcopy the existing array
-				Group tempArray[] = new Group[group.length];
-				System.arraycopy(group, 0, tempArray, 0, group.length);
 
-				// create the new array with a sufficient number of group allocations
-				group = new Group[groupId+1*2];
+			try {
+				// to relieve bottleneck caused by the lock on the next line
+				// check if the group array can support the new group
+				if (group.length < groupId+1) {
+					try {
 
-				// deepcopy the temp array back into the new one
-				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
+					// 1 thread can modify the Group array at a given time
+					while (!groupLock.compareAndSet(false, true)) {
+						if (Thread.currentThread().isInterrupted()){
+							break;
+						}
+					}
+					// check again incase the condition has changed since this thread traversed the lock
+					if (group.length < groupId + 1) {
+						// copy the existing array
+						Group tempArray[] = new Group[group.length];
+						System.arraycopy(group, 0, tempArray, 0, group.length);
+
+						// create the new array with a sufficient number of group allocations
+						//
+						group = new Group[groupId + 1 * 2];
+
+						// copy the temp array back into the new one
+						System.arraycopy(tempArray, 0, group, 0, tempArray.length);
+					}
+
+					} finally {
+						// release the lock
+						groupLock.set(false);
+					}
+				}
+			} catch (Exception e) {
+				System.out.println(e.toString());
+			} finally {
+				// instantiate a new thread if needed
+				if (group[groupId] == null) {
+					try {
+						while (!groupLock.compareAndSet(false, true)) {
+							if (Thread.currentThread().isInterrupted()){
+								break;
+							}
+						}
+						if (group[groupId] == null) {
+							group[groupId] = new Group(groupId);
+						}
+					} finally {
+						// release the lock
+						groupLock.set(false);
+					}
+				}
 			}
-		}catch (Exception e){
-			System.out.println(e.toString());
-		}finally {
-			if (group[groupId] == null){
-				group[groupId] = new Group(groupId);
-			}
-			groupLock.set(false);
-		}
+
 		group[groupId].waitThreads();
 	}
 	@Override
 	public void finished(int groupId) {
-		// TODO Auto-generated method stub
-		// call finished when thread finshes executing its "work"
+		// call finished when thread finishes executing its "work"
 		group[groupId].finished();
 
 	}
