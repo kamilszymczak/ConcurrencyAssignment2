@@ -10,10 +10,10 @@ Commit at most 1 working feature/method at once.
 **ClassName:** short description of change
 
 ## Group members:
-| Username        | Surname   | Firstname  |
-| ------------- |-------------| -----------|
-| Username1     | Surname1    | Firstname1 |
-| etc           | etc         |  etc       |
-| etc           | etc         |    etc     |
-| etc           | etc         |    etc     |
-| etc           | etc         |    etc     |
+| Username        | Surname     | Firstname    |
+| -------------   |-------------| -----------|
+| lw52            | Wilson      | Lewis      |
+| etc             | etc         |  etc       |
+| etc             | etc         |    etc     |
+| etc             | etc         |    etc     |
+| etc             | etc         |    etc     |
