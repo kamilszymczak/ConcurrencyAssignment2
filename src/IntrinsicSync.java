@@ -91,7 +91,7 @@ public class IntrinsicSync implements Synchronisable {
 			}
 		}
 
-		private void finished(){
+		private synchronized void finished(){
 
 				released++;
 				if(released == threadLimit){
@@ -117,25 +117,18 @@ public class IntrinsicSync implements Synchronisable {
 		call(groupId);
 	}
 
-	private synchronized void call(int groupId) {
+	private void call(int groupId) {
 		//Setting up new group if it doesn't exist in array
 		try {
 			// check if the group array can support the new group
 			if (group.length < groupId + 1) {
-				// deepcopy the existing array
-				IntrinsicSync.Group tempArray[] = new IntrinsicSync.Group[group.length];
-				System.arraycopy(group, 0, tempArray, 0, group.length);
-				// create the new array with a sufficient number of group allocations
-				group = new IntrinsicSync.Group[groupId * 2];
-
-				// deepcopy the temp array back into the new one
-				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
+				expandArray(groupId);
 			}
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		} finally {
 			if (group[groupId] == null) {
-				group[groupId] = new IntrinsicSync.Group(groupId);
+				newGroup(groupId);
 			}
 		}
 		group[groupId].waitThreads();
@@ -145,5 +138,25 @@ public class IntrinsicSync implements Synchronisable {
 	@Override
 	public void finished(int groupId) {
 		group[groupId].finished();
+	}
+
+	private synchronized void expandArray(int groupId){
+		// deepcopy the existing array
+		if (group.length < groupId + 1) {
+			IntrinsicSync.Group tempArray[] = new IntrinsicSync.Group[group.length];
+			System.arraycopy(group, 0, tempArray, 0, group.length);
+			// create the new array with a sufficient number of group allocations
+			group = new IntrinsicSync.Group[groupId * 2];
+
+			// deepcopy the temp array back into the new one
+			System.arraycopy(tempArray, 0, group, 0, tempArray.length);
+		}
+	}
+
+	private synchronized void newGroup(int groupId){
+		if (group[groupId] == null) {
+			group[groupId] = new IntrinsicSync.Group(groupId);
+		}
+
 	}
 }

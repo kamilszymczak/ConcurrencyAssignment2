@@ -21,6 +21,7 @@ public class SemaphoreSync implements Synchronisable {
 
 		final Semaphore A = new Semaphore(1, true);
 		final Semaphore B = new Semaphore(4,true);
+		final Semaphore F = new Semaphore(4,true);
 		final Semaphore C = new Semaphore(0,true);
 		private int groupID;
 
@@ -44,6 +45,18 @@ public class SemaphoreSync implements Synchronisable {
 
 			} catch (Exception e) {
 				System.out.println("Semaphore exception " + e.toString());
+			}
+		}
+
+		private void finished(){
+			F.acquireUninterruptibly();
+			try {
+				if (F.availablePermits() == 0 && phase == Phase.THREE);
+				//	System.out.println("in finished");}
+			}catch (Exception e) {
+				System.out.println(e.toString());
+			}finally {
+				F.release();
 			}
 		}
 
@@ -97,6 +110,6 @@ public class SemaphoreSync implements Synchronisable {
 	}
 	@Override
 	public void finished(int groupId) {
-		// TODO Auto-generated method stub
+		group[groupId].finished();
 	}
 }
