@@ -74,7 +74,7 @@ public class SemaphoreSync implements Synchronisable {
 		fourThreads.waitThreads();
 	}
 
-	private Group group[] = new Group[1];
+	private Group group[] = new Group[100];
 
 	@Override
 	public void waitForThreadsInGroup(int groupId) {
@@ -83,18 +83,17 @@ public class SemaphoreSync implements Synchronisable {
 		D.acquireUninterruptibly();
 		try {
 			// check if the group array can support the new group
-			if (group.length < groupId+1) {
+			if (group.length < groupId+1){
 				// deepcopy the existing array
-				SemaphoreSync.Group tempArray[] = new SemaphoreSync.Group[group.length];
+				Group tempArray[] = new Group[group.length];
 				System.arraycopy(group, 0, tempArray, 0, group.length);
 
 				// create the new array with a sufficient number of group allocations
-				group = new SemaphoreSync.Group[groupId + 1];
+				group = new Group[groupId *2];
 
 				// deepcopy the temp array back into the new one
 				System.arraycopy(tempArray, 0, group, 0, tempArray.length);
 			}
-
 		} catch (Exception e) {
 			System.out.println(e.toString());
 
@@ -102,10 +101,9 @@ public class SemaphoreSync implements Synchronisable {
 			if(group[groupId] == null){
 				group[groupId] = new SemaphoreSync.Group(groupId);
 			}
-
 			D.release();
-			group[groupId].waitThreads();
 		}
+		group[groupId].waitThreads();
 
 	}
 	@Override
