@@ -13,7 +13,7 @@ Commit at most 1 working feature/method at once.
 | Name         | User ID | Email         |
 |--------------|---------|---------------|
 | Lewis Wilson | lw52    | lw52@hw.ac.uk |
-| Sam          |         |               |
+| Sam          | sf52    | sf52@hw.ac.uk |
 | Kamil        |         |               |
 | Saad         |         |               |
 | Hudson       |         |               |
