@@ -74,7 +74,7 @@ public class AtomicSync implements Synchronisable {
 		}
 
 		private void finished() {
-			if (releasedCounter.decrementAndGet() == 0 && syncCounter.get() == 0){
+			while (releasedCounter.decrementAndGet() == 0){
 				releasedCounter.set(4);
 			}
 		}
