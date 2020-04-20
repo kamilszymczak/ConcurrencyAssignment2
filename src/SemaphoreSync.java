@@ -15,15 +15,17 @@ import java.util.concurrent.Semaphore;
 public class SemaphoreSync implements Synchronisable {
 
 	Phase phase;
-	final Semaphore D = new Semaphore(1,true);
-	final Semaphore E = new Semaphore(1,true);
+	final Semaphore arrayExpansion = new Semaphore(1,true);
+	final Semaphore instantiationLock = new Semaphore(1,true);
 
 	private class Group {
 
 		final Semaphore outerLock = new Semaphore(1, true);
 		final Semaphore syncIn = new Semaphore(4,true);
-		final Semaphore F = new Semaphore(4,true);
+		final Semaphore p3Lock = new Semaphore(4,true);
 		final Semaphore syncOut = new Semaphore(0,true);
+		final Semaphore numberOfCalls = new Semaphore(4,true);
+
 		private int groupID;
 
 		Group(int id) {this.groupID = id;}
@@ -32,17 +34,32 @@ public class SemaphoreSync implements Synchronisable {
 		private void waitThreads() {
 			try {
 
+				// Only allow only 1 thread into the critical area
 				outerLock.acquire();
 
+				// phase 3 threads get locked here until 4 threads call finished
+				if (phase == Phase.THREE){
+					p3Lock.acquire();
+				}
+				// acquire 1 of 4 permits
 				syncIn.acquire();
-				if(syncIn.availablePermits() == 0){
+				while(syncIn.availablePermits() == 0 && syncOut.availablePermits() == 0){
+					// all syncIn permits acquired, release 4 permits from the next lock
 					syncOut.release(4);
-				} else {
+				}
+				// let more threads past the outerLock when less than 4 threads are inside
+				while(syncIn.availablePermits() != 0 && outerLock.availablePermits() == 0){
 					outerLock.release();
 				}
+				// threads get blocked here until 4 arrive
 				syncOut.acquire();
+
+				// release 4 permits to be aqcuired after the outerLock is released
 				syncIn.release();
-				if (syncOut.availablePermits() == 0) outerLock.release();
+
+				// the last thread releases the outerLock permit
+				// allowing the first of the next 4 threads to enter the sync area
+				while (syncOut.availablePermits() == 0 && outerLock.availablePermits() == 0) outerLock.release();
 
 			} catch (Exception e) {
 				System.out.println("Semaphore exception " + e.toString());
@@ -50,17 +67,20 @@ public class SemaphoreSync implements Synchronisable {
 		}
 
 		private void finished(){
-			F.acquireUninterruptibly();
-			try {
-				if (F.availablePermits() == 0 && phase == Phase.THREE);
-				//	System.out.println("in finished");}
-			}catch (Exception e) {
-				System.out.println(e.toString());
-			}finally {
-				F.release();
-			}
-		}
+			//
 
+			try{
+				numberOfCalls.acquire();
+			}catch (Exception e){
+				System.out.println(e);
+			} finally {
+				while (numberOfCalls.availablePermits() == 0) {
+					p3Lock.release(4);
+					numberOfCalls.release(4);
+				}
+			}
+
+		}
 	}
 
 
@@ -81,13 +101,13 @@ public class SemaphoreSync implements Synchronisable {
 	public void waitForThreadsInGroup(int groupId) {
 
 		try {
-			if (group.length < groupId+1){
+			while (group.length < groupId+1){
 				// 1 thread can modify the Group array at a given time
 				try {
-					D.acquire();
+					arrayExpansion.acquire();
 
 					// check if the group array can support the new group
-					if (group.length < groupId+1) {
+					while (group.length < groupId+1) {
 						// deepcopy the existing array
 						Group tempArray[] = new Group[group.length];
 						System.arraycopy(group, 0, tempArray, 0, group.length);
@@ -99,23 +119,23 @@ public class SemaphoreSync implements Synchronisable {
 						System.arraycopy(tempArray, 0, group, 0, tempArray.length);
 					}
 				} finally {
-					D.release();
+					arrayExpansion.release();
 				}
 			}
 		} catch (Exception e) {
 			System.out.println(e.toString());
 
 		} finally {
-			if(group[groupId] == null){
+			while (group[groupId] == null){
 				try {
-					E.acquire();
-					if(group[groupId] == null){
+					instantiationLock.acquire();
+					while (group[groupId] == null){
 						group[groupId] = new SemaphoreSync.Group(groupId);
 					}
 				} catch (Exception e){
 					System.out.println("Exception in instantiate new semaphore group");
 				} finally {
-					E.release();
+					instantiationLock.release();
 				}
 			}
 			group[groupId].waitThreads();
