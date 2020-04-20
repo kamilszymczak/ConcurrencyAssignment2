@@ -429,4 +429,53 @@ public class ExtrinsicSyncTest {
 		tidy(threads);
 		threadStack.clear();
 	}
+
+	@Test
+	void testPhase3x() throws InterruptedException {
+		ExtrinsicSync extrin = new ExtrinsicSync(Phase.THREE);
+		final int initThreads = 8;
+		Thread threads[] = new Thread[initThreads];
+		int groups[] = new int[1];
+
+		for (int i = 0; i < initThreads/2; i++){
+			threads[i] = new Thread(new ThreadTester(extrin, 1));
+			//System.out.println("Thread "+threads[i]+" assigned to group "+gid);
+			threads[i].start();
+		}
+
+		Thread.sleep(3000);
+
+		for (int i = initThreads/2; i < initThreads; i++){
+			threads[i] = new Thread(new ThreadTester(extrin, 1));
+			//System.out.println("Thread "+threads[i]+" assigned to group "+gid);
+			threads[i].start();
+		}
+
+		System.out.println("====After 4 run 3sec break and another 4 run===");
+		for(int i = 0; i < threads.length; i++) {
+			System.out.println("Thread " + i + " State:- " + threads[i].getState());
+		}
+
+		Thread.sleep(4000);
+		System.out.println("====After 4sec===");
+
+		for(int i = 0; i < threads.length; i++) {
+			System.out.println("Thread " + i + " State:- " + threads[i].getState());
+		}
+
+		Thread.sleep(4000);
+		System.out.println("====After 8sec===");
+
+		for(int i = 0; i < threads.length; i++) {
+			System.out.println("Thread " + i + " State:- " + threads[i].getState());
+		}
+
+//			if(i < initThreads/2) {
+//				assertEquals(Thread.State.RUNNABLE, threads[i].getState(), "Fails!");
+//			} else {
+//				assertEquals(Thread.State.WAITING, threads[i].getState(), "Fails!");
+//			}
+	}
+
+
 }
