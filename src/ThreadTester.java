@@ -96,6 +96,10 @@ public class ThreadTester implements Runnable {
         terminated = true;
     }
 
+    public void setWaitTime(int ms){
+        this.waitTime = ms;
+    }
+
     private void doStuff(int howLong) {
         //try{ Thread.sleep(howLong);} catch (Exception e){System.out.println("Exception "+e.toString());}
 
