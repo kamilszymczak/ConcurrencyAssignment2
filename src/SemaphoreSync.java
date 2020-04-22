@@ -54,7 +54,7 @@ public class SemaphoreSync implements Synchronisable {
 				// threads get blocked here until 4 arrive
 				syncOut.acquire();
 
-				// release 4 permits to be aqcuired after the outerLock is released
+				// release 4 permits (one each thread) to be aqcuired after the outerLock is released
 				syncIn.release();
 
 				// the last thread releases the outerLock permit

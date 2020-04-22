@@ -6,7 +6,7 @@ public class ThreadTester implements Runnable {
     ExtrinsicSync extS = null;
     IntrinsicSync intS = null;
     public int gid = 0;
-    public int waitTime = 5000;
+    public int waitTime = 5;
     Phase phase;
     Init concept;
     public Boolean terminated = false;

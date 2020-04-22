@@ -88,6 +88,7 @@ public class SemaphoreSyncTest {
     }
 
     @Test
+    @Tag("Non-random")
     void testPhase1a() {
         final int initThreads = 10000;
         final int expectedThreads = largestMultipleFour(initThreads);
@@ -111,6 +112,7 @@ public class SemaphoreSyncTest {
     // paramterized test to test a range of thread numbers
     @ParameterizedTest(name="Run {index}")
     @ValueSource(ints = {0, 1, 3, 4, 7, 8, 10, 12, 25, 36, 50, 100, 123, 523})
+    @Tag("Non-random")
     public void testPhase1b(int initThreads) throws Throwable {
         final int expectedThreads = largestMultipleFour(initThreads);
         Thread threads[] = initP1Test(initThreads);
@@ -128,6 +130,7 @@ public class SemaphoreSyncTest {
     }
 
     @Test
+    @Tag("Non-random")
     void testPhase2a() {
         // testing 2 groups
 
@@ -305,6 +308,7 @@ public class SemaphoreSyncTest {
 
     @ParameterizedTest(name="Run {index}")
     @ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+    @Tag("Non-random")
     void testPhase2d(int threadBound){
 
         final int initThreads = (threadBound%2 == 0 ? threadBound : ++threadBound);
@@ -348,6 +352,7 @@ public class SemaphoreSyncTest {
 
     @ParameterizedTest(name="Run {index}")
     @ValueSource(ints = {0, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+    @Tag("Non-random")
     void testPhase3a(int threadBound){
 
         final int initThreads = (threadBound%2 == 0 ? threadBound : ++threadBound);
