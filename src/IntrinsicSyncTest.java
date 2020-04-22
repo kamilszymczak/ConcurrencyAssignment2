@@ -429,4 +429,98 @@ public class IntrinsicSyncTest {
 		tidy(threads);
 		threadStack.clear();
 	}
+
+	@Test
+	void testPhase3x() throws InterruptedException {
+		IntrinsicSync intrinsic = new IntrinsicSync(Phase.THREE);
+		final int initThreads = 8;
+		Thread threads[] = new Thread[initThreads];
+		int groups[] = new int[1];
+
+		Stack waitingStack = new Stack<Thread>();
+		Stack runnableStack = new Stack<Thread>();
+		Stack terminatedStack = new Stack<Thread>();
+
+		for (int i = 0; i < initThreads; i++){
+			threads[i] = new Thread(new ThreadTester(intrinsic, 1));
+			//System.out.println("Thread "+threads[i]+" assigned to group "+gid);
+			threads[i].start();
+		}
+
+		doStuff(2000);
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
+		}
+		assertEquals(4, waitingStack.size(), "Wrong number of waiting threads before 1st sleep");
+		assertEquals(4, runnableStack.size(), "Wrong number of runnable threads before sleep");
+		assertEquals(0, terminatedStack.size(), "Wrong number of terminated threads before sleep");
+
+		Thread.sleep(1400);
+
+		System.out.println("====After 3.5 sec===");
+
+		waitingStack = new Stack<Thread>();
+		runnableStack = new Stack<Thread>();
+		terminatedStack = new Stack<Thread>();
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
+		}
+		assertEquals(4, waitingStack.size(), "Wrong number of waiting threads after 1.4s");
+		assertEquals(4, runnableStack.size(), "Wrong number of runnable threads after 1.4s");
+		assertEquals(0, terminatedStack.size(), "Wrong number of terminated threads after 1.4s");
+
+		Thread.sleep(3500);
+		System.out.println("====After 7sec===");
+
+		waitingStack = new Stack<Thread>();
+		runnableStack = new Stack<Thread>();
+		terminatedStack = new Stack<Thread>();
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
+		}
+		assertEquals(0, waitingStack.size(), "Wrong number of waiting threads after 7s");
+		assertEquals(4, runnableStack.size(), "Wrong number of runnable threads after 7s");
+		assertEquals(4, terminatedStack.size(), "Wrong number of terminated threads after 7s");
+
+		Thread.sleep(6000);
+		System.out.println("====After 12sec===");
+
+		waitingStack = new Stack<Thread>();
+		runnableStack = new Stack<Thread>();
+		terminatedStack = new Stack<Thread>();
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
+		}
+		assertEquals(0, waitingStack.size(), "Wrong number of waiting threads at end");
+		assertEquals(0, runnableStack.size(), "Wrong number of runnable threads at end");
+		assertEquals(8, terminatedStack.size(), "Wrong number of terminated threads at end");
+	}
+
+	private void doStuff(int howLong) {
+		//try{ Thread.sleep(howLong);} catch (Exception e){System.out.println("Exception "+e.toString());}
+
+		final long waitLimit = howLong;
+		final long beginWait = ZonedDateTime.now().toInstant().toEpochMilli();
+
+		long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+
+		//termThreads = finished.size();
+		//while not terminated or timed out
+		while ((timeNow - beginWait) <= waitLimit) {
+			timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+		}
+	}
+
 }
