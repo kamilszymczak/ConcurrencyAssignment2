@@ -442,8 +442,11 @@ public class SemaphoreSyncTest {
         Stack terminatedStack = new Stack<Thread>();
 
         for (int i = 0; i < initThreads; i++){
-            threads[i] = new Thread(new ThreadTester(semaphore, 1));
+            ThreadTester test = new ThreadTester(semaphore, 1);
+            test.setWaitTime(5000);
+            threads[i] = new Thread(test);
             //System.out.println("Thread "+threads[i]+" assigned to group "+gid);
+
             threads[i].start();
         }
 
