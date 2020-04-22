@@ -1,3 +1,4 @@
+import java.time.ZonedDateTime;
 
 public class ThreadTester implements Runnable {
     AtomicSync atomic = null;
@@ -5,7 +6,7 @@ public class ThreadTester implements Runnable {
     ExtrinsicSync extS = null;
     IntrinsicSync intS = null;
     public int gid = 0;
-    public int waitTime = 5;
+    public int waitTime = 5000;
     Phase phase;
     Init concept;
     public Boolean terminated = false;
@@ -96,7 +97,18 @@ public class ThreadTester implements Runnable {
     }
 
     private void doStuff(int howLong) {
-        try{ Thread.sleep(howLong);} catch (Exception e){System.out.println("Exception "+e.toString());}
+        //try{ Thread.sleep(howLong);} catch (Exception e){System.out.println("Exception "+e.toString());}
+
+        final long waitLimit = howLong;
+        final long beginWait = ZonedDateTime.now().toInstant().toEpochMilli();
+
+        long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+
+        //termThreads = finished.size();
+        //while not terminated or timed out
+        while ((timeNow - beginWait) <= waitLimit) {
+            timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+        }
     }
 
     private void done(){
