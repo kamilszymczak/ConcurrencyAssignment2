@@ -437,45 +437,89 @@ public class ExtrinsicSyncTest {
 		Thread threads[] = new Thread[initThreads];
 		int groups[] = new int[1];
 
-		for (int i = 0; i < initThreads/2; i++){
+		Stack waitingStack = new Stack<Thread>();
+		Stack runnableStack = new Stack<Thread>();
+		Stack terminatedStack = new Stack<Thread>();
+
+		for (int i = 0; i < initThreads; i++){
 			threads[i] = new Thread(new ThreadTester(extrin, 1));
 			//System.out.println("Thread "+threads[i]+" assigned to group "+gid);
 			threads[i].start();
 		}
 
-		Thread.sleep(3000);
-
-		for (int i = initThreads/2; i < initThreads; i++){
-			threads[i] = new Thread(new ThreadTester(extrin, 1));
-			//System.out.println("Thread "+threads[i]+" assigned to group "+gid);
-			threads[i].start();
+		doStuff(2000);
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
 		}
+		assertEquals(4, waitingStack.size(), "Wrong number of waiting threads before 1st sleep");
+		assertEquals(4, runnableStack.size(), "Wrong number of runnable threads before sleep");
+		assertEquals(0, terminatedStack.size(), "Wrong number of terminated threads before sleep");
 
-		System.out.println("====After 4 run 3sec break and another 4 run===");
-		for(int i = 0; i < threads.length; i++) {
-			System.out.println("Thread " + i + " State:- " + threads[i].getState());
+		Thread.sleep(1400);
+
+		System.out.println("====After 3.5 sec===");
+
+		waitingStack = new Stack<Thread>();
+		runnableStack = new Stack<Thread>();
+		terminatedStack = new Stack<Thread>();
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
 		}
+		assertEquals(4, waitingStack.size(), "Wrong number of waiting threads after 1.4s");
+		assertEquals(4, runnableStack.size(), "Wrong number of runnable threads after 1.4s");
+		assertEquals(0, terminatedStack.size(), "Wrong number of terminated threads after 1.4s");
 
-		Thread.sleep(4000);
-		System.out.println("====After 4sec===");
+		Thread.sleep(3500);
+		System.out.println("====After 7sec===");
 
-		for(int i = 0; i < threads.length; i++) {
-			System.out.println("Thread " + i + " State:- " + threads[i].getState());
+		waitingStack = new Stack<Thread>();
+		runnableStack = new Stack<Thread>();
+		terminatedStack = new Stack<Thread>();
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
 		}
+		assertEquals(0, waitingStack.size(), "Wrong number of waiting threads after 7s");
+		assertEquals(4, runnableStack.size(), "Wrong number of runnable threads after 7s");
+		assertEquals(4, terminatedStack.size(), "Wrong number of terminated threads after 7s");
 
-		Thread.sleep(4000);
-		System.out.println("====After 8sec===");
+		Thread.sleep(6000);
+		System.out.println("====After 12sec===");
 
-		for(int i = 0; i < threads.length; i++) {
-			System.out.println("Thread " + i + " State:- " + threads[i].getState());
+		waitingStack = new Stack<Thread>();
+		runnableStack = new Stack<Thread>();
+		terminatedStack = new Stack<Thread>();
+		for (int i = 0; i < initThreads; i++){
+			System.out.println("State: "+threads[i].getState());
+			if (threads[i].getState().equals(Thread.State.WAITING)) waitingStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.RUNNABLE)) runnableStack.push(threads[i]);
+			if (threads[i].getState().equals(Thread.State.TERMINATED)) terminatedStack.push(threads[i]);
 		}
-
-//			if(i < initThreads/2) {
-//				assertEquals(Thread.State.RUNNABLE, threads[i].getState(), "Fails!");
-//			} else {
-//				assertEquals(Thread.State.WAITING, threads[i].getState(), "Fails!");
-//			}
+		assertEquals(0, waitingStack.size(), "Wrong number of waiting threads at end");
+		assertEquals(0, runnableStack.size(), "Wrong number of runnable threads at end");
+		assertEquals(8, terminatedStack.size(), "Wrong number of terminated threads at end");
 	}
 
+	private void doStuff(int howLong) {
+		//try{ Thread.sleep(howLong);} catch (Exception e){System.out.println("Exception "+e.toString());}
 
+		final long waitLimit = howLong;
+		final long beginWait = ZonedDateTime.now().toInstant().toEpochMilli();
+
+		long timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+
+		//termThreads = finished.size();
+		//while not terminated or timed out
+		while ((timeNow - beginWait) <= waitLimit) {
+			timeNow = ZonedDateTime.now().toInstant().toEpochMilli();
+		}
+	}
 }
