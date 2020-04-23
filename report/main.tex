@@ -41,7 +41,7 @@
 \subsubsection{Efficiency}
 
 
-When developing our solutions we have experienced significant differences between the results on a system by system basis. We have selected a single system to run all the tests on, so that their relative performance in that environment can be compared. The system in question has a 4 core 4.5Ghz i7 processor, 16GB of DDR4 RAM and is running the latest version of Windows 10. It is important to emphasize that the tests are not representative of anything beyond the system they ran on.
+When developing our solutions we have experienced significant differences between the results on a system by system basis. We have selected a single system to run all the tests on, so that their relative performance in that environment can be compared. The system in question has a 4 core 4.5Ghz i7 processor, 16GB of DDR4 RAM and is running the latest version of Windows 10. It is important to emphasize that the tests are not representative of anything beyond the system they ran on. \\
 
 The table below shows the average time in seconds to complete 5 runs of the tests, for each of the sync classes. A description of each test and the full test results have been provided in the appendix: 
 
@@ -73,12 +73,20 @@ Thus a direct ranking based purely on an efficiency perspective results in the f
 
 \subsubsection{Responsiveness}
 
+AtomicSync and IntrinsicSync were certainly the easiest to implement, however these, and ExtrinsicSync appeared to really suffer performance issues when trying to synchronize larger numbers of threads, SemaphoreSync on the other hand was quite challenging to get working without errors. Once SemaphoreSync was working, it appeared to perform only slightly worse as the number of threads went up,  compared to the other synchronization classes which would get vastly worse performance each time you doubled the number of threads. \\
 
+Below is the teams ranking of the four different implementations based on responsiveness. The reason these rankings vary from efficiency is due to the fact the team experienced greatly different results from different hardware testing and thus believe this is overall the correct ranking.
+\begin{enumerate}
+\item SemaphoreSync 
+\item IntrinsicSync
+\item AtomicSync
+\item ExtrinsicSync
 
+\end{enumerate}
 
 \pagebreak
 \subsection{Readability}
-discussion about  Readability (about half a page)
+
 
 Below is a discussion by the team about the readability of the four classes: \\
 
@@ -101,6 +109,9 @@ The teams ranking of the classes based on readability and sharing code within by
 
 \pagebreak
 \subsection{Error-proneness}
+
+Below is a selection of common errors we as a team believe are likely to be encountered when implementing the concurrent classes : \\
+
 \textbf{Null pointer exceptions in phase 2 \& 3} - Thread groups are stored inside an array where elements are based on their group id, that is for example group 7 is stored as the 7th element inside the array. The area of concern is  when a group arrives with an id that is greater than the current length of the array, a deep copy occurs creating a new larger array. A null pointer exception can occur if synchronization is wrongly implemented as if the array is modified by multiple threads simultaneously; two threads could perceive the array to be of a different size.\\
 
 
