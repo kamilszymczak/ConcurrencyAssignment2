@@ -101,7 +101,16 @@ The teams ranking of the classes based on readability and sharing code within by
 
 \pagebreak
 \subsection{Error-proneness}
-discussion about Error-proneness (about half a page)
+\textbf{Null pointer exceptions in phase 2 \& 3} - Thread groups are stored inside an array where elements are based on their group id, that is for example group 7 is stored as the 7th element inside the array. The area of concern is  when a group arrives with an id that is greater than the current length of the array, a deep copy occurs creating a new larger array. A null pointer exception can occur if synchronization is wrongly implemented as if the array is modified by multiple threads simultaneously; two threads could perceive the array to be of a different size.\\
+
+
+\textbf{Infinite loop problems} -  Very rarely a programmer could encounter the behaviour of an infinite loop problems in atomic sync and semaphore sync where threads where stuck in the waiting state which is most likely caused by cpu scheduling. This is also an issue when testing as you could run a test thousands of times and have it pass every time but once in a blue moon could get stuck in an infinite loop. \\
+
+
+\textbf{Misusing Notify and NotifyAll} - Programmers could misunderstand the difference between notify and notifyAll and use notify with the intention to release all threads that were waiting to be released. But since we want to release multiple threads we need to notify all threads thus using NotifyAll. \\
+
+
+\textbf{Confusing wait with await between Intrinsic and Extrinsic respectively} - They mostly offer the same functionality but Intrinsic wait can only be related to a single lock instance whereas Extrinsic await can have multiple Conditions with multiple locks.
 
 \newpage
 \appendix
@@ -144,7 +153,7 @@ Averages & 0815   & 0.690     & 0.717     & 1.146     \\ \hline
 \end{tabular}
 \end{table}
 
-\textbf{Test 2A description :} We created 10 threads that run phase two. We assign the first half of threads to a group with id 0 and the second half to a group with id 1. We wait till threads in each group terminate and count them. We then expect the number of threads terminated in each group to equal our expected number of threads to be terminated. \\
+\textbf{Test 2A description:} We created 10 threads that run phase two. We assign the first half of threads to a group with id 0 and the second half to a group with id 1. We wait till threads in each group terminate and count them. We then expect the number of threads terminated in each group to equal our expected number of threads to be terminated. \\
 
 
 \begin{table}[H]
