@@ -38,6 +38,7 @@
 \section{Comparison of Different Methods Used to Achieve Synchronization}
 
 \subsection{Efficiency Vs. responsiveness}
+\subsubsection{Efficiency}
 
 When developing our solutions we have experienced significant differences between the results on a system by system basis. We have selected a single system to run all the tests on, so that their relative performance in that environment can be compared. The system in question has a 4 core 4.5Ghz i7 processor, 16GB of DDR4 RAM and is running the latest version of Windows 10. It is important to emphasize that the tests are not representative of anything beyond the system they ran on.
 
@@ -143,10 +144,44 @@ Avearges & 0815   & 0.690     & 0.717     & 1.146     \\ \hline
 \textbf{Test 2A description :} We created 10 threads that run phase two. We assign the first half of threads to a group with id 0 and the second half to a group with id 1. We wait till threads in each group terminate and count them. We then expect the number of threads terminated in each group to equal our expected number of threads to be terminated. \\
 
 
-\textbf{Test 2D description:} Same as 2A but runs using parameterized testing, with the same range of inputs as in Tests 1B.
+\begin{table}[H]
+\centering
+\caption{Test 2A results in seconds}
+\label{tab:my-table}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+Test run & Atomic & Intrinsic & Extrinsic & Semaphore \\ \hline
+1        & 0.135  & 0.122     & 0.121     & 0.124     \\ \hline
+2        & 0.126  & 0.126     & 0.130     & 0.104     \\ \hline
+3        & 0.124  & 0.123     & 0.124     & 0.102     \\ \hline
+4        & 0.126  & 0.126     & 0.122     & 0.101     \\ \hline
+5        & 0.125  & 0.122     & 0.126     & 0.102     \\ \hline
+Avearges & 0.127  & 0.124     & 0.125     & 0.107     \\ \hline
+\end{tabular}
+\end{table}
+
+\textbf{Test 2D description:}
 \\
 
-\textbf{Test 3A description:} This test method creates 2 groups, and assigns a fixed number of threads from the testing parameters to each group. It then instantiates a thread that will simulate doing some work when it runs (a simple timed busywait 5ms). Finally it performs JUnit assertion operations on a stack containing all the terminated threads. Note that this test does not test the functionality of the finished method, its purely a stability and performance test.
+
+\begin{table}[H]
+\centering
+\caption{Test 2D results in seconds}
+\label{tab:my-table}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+Test run & Atomic & Intrinsic & Extrinsic & Semaphore \\ \hline
+1        & 1.771  & 1.739     & 1.753     & 2.815     \\ \hline
+2        & 1.970  & .1741     & 1.752     & 2.746     \\ \hline
+3        & 1.788  & 1.740     & 1.751     & 2.857     \\ \hline
+4        & 2.920  & 1.738     & 1.758     & 2.803     \\ \hline
+5        & 1.736  & 1.734     & 1.750     & 2.760     \\ \hline
+Avearges & 2.037  & 1.738     & 1.753     & 2.796     \\ \hline
+\end{tabular}
+\end{table}
+
+
+\textbf{Test 3A description:}
 \\
 
 
