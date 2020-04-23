@@ -163,8 +163,7 @@ Avearges & 0.127  & 0.124     & 0.125     & 0.107     \\ \hline
 \end{tabular}
 \end{table}
 
-\textbf{Test 2D description:}
-\\ \\ 
+\textbf{Test 2D description:} Same as 2A but runs using parameterized testing, with the same range of inputs as in Tests 1B.\\
 
 
 \begin{table}[H]
@@ -184,8 +183,7 @@ Avearges & 2.037  & 1.738     & 1.753     & 2.796     \\ \hline
 \end{table}
 
 
-\textbf{Test 3A description:}
-\\
+\textbf{Test 3A description:} This test method creates 2 groups, and assigns a fixed number of threads from the testing parameters to each group. It then instantiates a thread that will simulate doing some work when it runs (a simple timed busywait 5ms). Finally it performs JUnit assertion operations on a stack containing all the terminated threads. Note that this test does not test the functionality of the finished method, its purely a stability and performance test.\\ 
 
 
 \section{Readability ranking table}
