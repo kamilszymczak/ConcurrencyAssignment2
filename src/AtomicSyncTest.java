@@ -90,7 +90,7 @@ public class AtomicSyncTest {
     @Test
     @Tag("Non-random")
     void testPhase1a() {
-        final int initThreads = 10000;
+        final int initThreads = 100;
         final int expectedThreads = largestMultipleFour(initThreads);
 
         Thread threads[] = initP1Test(initThreads);
