@@ -64,12 +64,51 @@ Test Name & Atomic & Intrinsic & Extrinsic & Semaphore \\ \hline
 \end{tabular}
 \end{table}
 
+
+\pagebreak
 \subsection{Readability}
 discussion about  Readability (about half a page)
+
+Below is a discussion by the team about the readability of the four classes: \\
+
+\textbf{AtomicSync} - The team thought overall the code was well formatted and made good use of white space. Members found that conceptually busy waits are easier to follow than some of the other implementations. Members commented on the fact when reading the code, compare and set could be potentially misleading if you have not read and correctly understood the documentation.\\
+
+\textbf{IntrinsicSync} - The team agreed method names could be improved - “call, put, take”. Members found it easy to understand where only a single thread executes code and where concurrency is permitted. Members commented on the finish method stating that it was well commented as well as the logic being easy to understand. \\
+
+\textbf{ExtrinsicSync} - The team agreed like in IntrinsicSync method names could be improved “put and take”. Members also commented on the fact time needed to be spent on familiarising yourself with the .await() and .signalAll() functionally to understand the implementation. Members found the code well formatted and thought that it made good use of comments. \\
+
+\textbf{SemaphoreSync} - The team thought as a whole that Semaphore Sync was the most complex implementation out of all the classes, with it taking the largest amount of time to familiarise with the implementation. Members commented on the fact that the solution could perhaps be simplified if given more time.  \\
+
+The teams ranking of the classes based on readability and sharing code within by team: 
+
+\begin{enumerate}
+	\item AtomicSync
+	\item IntrinsicSync
+	\item ExtrinsicSync
+	\item SemaphoreSync
+\end{enumerate}
+
+\pagebreak
 \subsection{Error-proneness}
 discussion about Error-proneness (about half a page)
 
+\newpage
+\appendix
+\section{Test description}
+\textbf{Test 1A description:} A stress test that creates 10,000 threads that run phase one. We wait till all threads terminate (or they timeout via our built in timeout feature) and count the threads that terminated. We then check that the number of threads terminated is equal to the number of threads we expected to terminate (the largest multiple of created threads).\\
 
-\bibliographystyle{plain}
-\bibliography{references}
+\textbf{Test 1B description:} Same logic as Test 1A but runs multiple tests with a different number of threads using a parameterized input. In the test we have used the following input : {0, 1, 3, 4, 7, 8, 10, 12, 25, 36, 50, 100, 123, 523}. This test is predominantly testing the edge cases of the specification. \\
+
+\textbf{Test 2A description :} We created 10 threads that run phase two. We assign the first half of threads to a group with id 0 and the second half to a group with id 1. We wait till threads in each group terminate and count them. We then expect the number of threads terminated in each group to equal our expected number of threads to be terminated. \\
+
+
+\textbf{Test 2D description:}
+\\
+
+\textbf{Test 3A description:}
+\\
+
+
+\section{Readability ranking table}
+
 \end{document}
