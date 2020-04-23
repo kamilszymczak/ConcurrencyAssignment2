@@ -50,6 +50,7 @@ The table below shows the average time in seconds to complete 5 runs of the test
 % If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
 \begin{table}[H]
 \caption{}
+\centering
 \label{tab:my-table}
 \begin{tabular}{|l|l|l|l|l|l|}
 \hline
@@ -75,7 +76,7 @@ Thus a direct ranking based purely on an efficiency perspective results in the f
 
 AtomicSync and IntrinsicSync were certainly the easiest to implement, however these, and ExtrinsicSync appeared to really suffer performance issues when trying to synchronize larger numbers of threads, SemaphoreSync on the other hand was quite challenging to get working without errors. Once SemaphoreSync was working, it appeared to perform only slightly worse as the number of threads went up,  compared to the other synchronization classes which would get vastly worse performance each time you doubled the number of threads. \\
 
-Below is the teams ranking of the four different implementations based on responsiveness. The reason these rankings vary from efficiency is due to the fact the team experienced greatly different results from different hardware testing and thus believe this is overall the correct ranking.
+Below is the teams ranking of the four different implementations based on responsiveness. The reason these rankings vary from the efficiency rankings is due to the fact the team experienced greatly different results when testing with different hardware.
 \begin{enumerate}
 \item SemaphoreSync 
 \item IntrinsicSync
@@ -110,7 +111,7 @@ The teams ranking of the classes based on readability and sharing code within by
 \pagebreak
 \subsection{Error-proneness}
 
-Below is a selection of common errors we as a team believe are likely to be encountered when implementing the concurrent classes : \\
+Below is a selection of common errors we as a team believe are likely to be encountered when implementing the concurrent classes: \\
 
 \textbf{Null pointer exceptions in phase 2 \& 3} - Thread groups are stored inside an array where elements are based on their group id, that is for example group 7 is stored as the 7th element inside the array. The area of concern is  when a group arrives with an id that is greater than the current length of the array, a deep copy occurs creating a new larger array. A null pointer exception can occur if synchronization is wrongly implemented as if the array is modified by multiple threads simultaneously; two threads could perceive the array to be of a different size.\\
 
