@@ -111,7 +111,7 @@ public class SemaphoreSyncTest {
 
     // paramterized test to test a range of thread numbers
     @ParameterizedTest(name="Run {index}")
-    @ValueSource(ints = {0, 1, 3, 4, 7, 8, 10, 12, 25, 36, 50, 100, 123, 523})
+    @ValueSource(ints = {0, 1, 3, 4, 7, 8, 10, 12, 25, 36, 50, 100, 123})
     @Tag("Non-random")
     public void testPhase1b(int initThreads) throws Throwable {
         final int expectedThreads = largestMultipleFour(initThreads);
@@ -208,7 +208,7 @@ public class SemaphoreSyncTest {
     //etc
 
     @ParameterizedTest(name="Run {index}")
-    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122})
     void testPhase2b(int threadBound){
         Random rand = new Random();
 
@@ -307,7 +307,7 @@ public class SemaphoreSyncTest {
     }
 
     @ParameterizedTest(name="Run {index}")
-    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122})
     @Tag("Non-random")
     void testPhase2d(int threadBound){
 
@@ -351,7 +351,7 @@ public class SemaphoreSyncTest {
     }
 
     @ParameterizedTest(name="Run {index}")
-    @ValueSource(ints = {0, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122, 522})
+    @ValueSource(ints = {0, 2, 3, 4, 5, 6, 8, 10, 11, 12, 25, 26, 36, 50, 100, 122})
     @Tag("Non-random")
     void testPhase3a(int threadBound){
 
