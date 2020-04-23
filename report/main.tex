@@ -34,10 +34,10 @@
 \thispagestyle{empty}
 \pagebreak
 \setcounter{page}{1}
+
 \section{Comparison of Different Methods Used to Achieve Synchronization}
 
 \subsection{Efficiency Vs. responsiveness}
-
 
 When developing our solutions we have experienced significant differences between the results on a system by system basis. We have selected a single system to run all the tests on, so that their relative performance in that environment can be compared. The system in question has a 4 core 4.5Ghz i7 processor, 16GB of DDR4 RAM and is running the latest version of Windows 10. It is important to emphasize that the tests are not representative of anything beyond the system they ran on.
 
@@ -102,10 +102,10 @@ discussion about Error-proneness (about half a page)
 \textbf{Test 2A description :} We created 10 threads that run phase two. We assign the first half of threads to a group with id 0 and the second half to a group with id 1. We wait till threads in each group terminate and count them. We then expect the number of threads terminated in each group to equal our expected number of threads to be terminated. \\
 
 
-\textbf{Test 2D description:}
+\textbf{Test 2D description:} Same as 2A but runs using parameterized testing, with the same range of inputs as in Tests 1B.
 \\
 
-\textbf{Test 3A description:}
+\textbf{Test 3A description:} This test method creates 2 groups, and assigns a fixed number of threads from the testing parameters to each group. It then instantiates a thread that will simulate doing some work when it runs (a simple timed busywait 5ms). Finally it performs JUnit assertion operations on a stack containing all the terminated threads. Note that this test does not test the functionality of the finished method, its purely a stability and performance test.
 \\
 
 
